@@ -1,0 +1,12 @@
+[data-system='dnd'] {
+  --theme-background: #e9e0cf;
+  --theme-surface: #faf5ea;
+  --theme-text: #2b2420;
+  --theme-muted: #62554b;
+  --theme-accent: #7c302d;
+  --theme-border: #bbaa90;
+  --theme-focus: #7c302d;
+  --theme-body-font: 'Source Sans 3', system-ui, sans-serif;
+  --theme-heading-font: 'Cinzel', Georgia, serif;
+}
+

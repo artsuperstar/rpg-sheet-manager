@@ -1,0 +1,11 @@
+[data-system='ordem'] {
+  --theme-background: #080b0b;
+  --theme-surface: #171d1b;
+  --theme-text: #edf1ef;
+  --theme-muted: #b1bbb7;
+  --theme-accent: #c2555b;
+  --theme-border: #3c4945;
+  --theme-focus: #c5a264;
+  --theme-body-font: 'Source Sans 3', system-ui, sans-serif;
+  --theme-heading-font: 'Source Sans 3', system-ui, sans-serif;
+}
