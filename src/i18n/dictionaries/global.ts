@@ -1,8 +1,7 @@
 import type { Pair } from './types'
 
 export const globalMessages = {
-  'Fichas de RPG': { 'pt-BR': 'Fichas de RPG', en: 'RPG Character Sheets' },
-  'Biblioteca de fichas': { 'pt-BR': 'Biblioteca de fichas', en: 'Character sheet library' },
+  'Suas fichas de RPG em um só lugar.': { 'pt-BR': 'Suas fichas de RPG em um só lugar.', en: 'Your RPG character sheets in one place.' },
   'Seu espaço de aventura': { 'pt-BR': 'Seu espaço de aventura', en: 'Your adventure space' },
   'Escolha um sistema de RPG': { 'pt-BR': 'Escolha um sistema de RPG', en: 'Choose an RPG system' },
   'Suas fichas de D&D e Ordem Paranormal, cada uma em seu próprio universo. Escolha por onde começar.': { 'pt-BR': 'Suas fichas de D&D e Ordem Paranormal, cada uma em seu próprio universo. Escolha por onde começar.', en: 'Your D&D and Ordem Paranormal sheets, each in its own world. Choose where to begin.' },

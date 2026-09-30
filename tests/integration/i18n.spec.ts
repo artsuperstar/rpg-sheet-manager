@@ -13,11 +13,11 @@ async function choose(page: Page, locale: 'pt-BR' | 'en') {
 test('preferência global persiste, fallback e valor inválido são seguros', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR')
-  await expect(page).toHaveTitle('Fichas de RPG')
+  await expect(page).toHaveTitle('Dicebound')
   await choose(page, 'en')
   await expect(page.getByRole('heading', { name: 'Choose an RPG system' })).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-  await expect(page).toHaveTitle('RPG Character Sheets')
+  await expect(page).toHaveTitle('Dicebound')
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Choose an RPG system' })).toBeVisible()
   await choose(page, 'pt-BR')

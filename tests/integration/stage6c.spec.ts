@@ -2,11 +2,11 @@ import { expect, test } from '@playwright/test'
 
 test('landing conserva o cabeçalho global e sua seleção de idioma', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('banner')).toContainText('Fichas de RPG')
-  await expect(page.getByRole('heading', { level: 1, name: 'Fichas de RPG' })).toBeVisible()
+  await expect(page.getByRole('banner')).toContainText('Dicebound')
+  await expect(page.getByRole('heading', { level: 1, name: 'Dicebound' })).toBeVisible()
   await expect(page.getByRole('group', { name: 'Idioma' })).toBeVisible()
   await page.getByRole('group', { name: 'Idioma' }).getByRole('button', { name: 'English' }).click()
-  await expect(page.getByRole('banner')).toContainText('RPG Character Sheets')
+  await expect(page.getByRole('banner')).toContainText('Dicebound')
 })
 
 for (const [system, icon] of [['dnd', 'tavern-mug'], ['ordem', 'ordem-sigil']] as const) {

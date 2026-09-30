@@ -1,5 +1,5 @@
 import { SYSTEMS, type RpgSystemId } from './systemRegistry'
-import mug from '../shared/assets/tavern-mug.png'
+import mark from '../shared/assets/dicebound-mark.png'
 import styles from '../shared/styles/shell.module.css'
 import { useI18n } from '../i18n/useI18n'
 import { LanguageSelector } from '../i18n/LanguageSelector'
@@ -19,7 +19,7 @@ export function SystemChooser({ onSelect }: SystemChooserProps) {
           <h2 id="choose-system-heading">{t('Escolha um sistema de RPG')}</h2>
           <p>{t('Suas fichas de D&D e Ordem Paranormal, cada uma em seu próprio universo. Escolha por onde começar.')}</p>
         </div>
-        <div className={styles.chooserIllustration} aria-hidden="true"><img src={mug} alt="" /></div>
+        <div className={styles.chooserIllustration} aria-hidden="true"><img src={mark} alt="" /></div>
       </div>
       <div className={styles.choiceHeading}><span>{t('01 / Escolha sua mesa')}</span><span>{t('Dois sistemas · um lugar para suas fichas')}</span></div>
       <div className={styles.choiceGrid}>

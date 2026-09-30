@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import mug from '../assets/tavern-mug.png'
+import mark from '../assets/dicebound-mark.png'
 import styles from '../styles/shell.module.css'
 import { useI18n } from '../../i18n/useI18n'
 import { LanguageSelector } from '../../i18n/LanguageSelector'
@@ -17,10 +17,10 @@ export function AppShell({ theme, showHeader = true, children }: AppShellProps) 
       <div className={styles.container}>
         {showHeader && <header className={styles.header}>
           <div className={styles.productBrand}>
-            <img src={mug} alt="" />
+            <img src={mark} alt="" />
             <div>
-              <p className={styles.kicker}>{t('Biblioteca de fichas')}</p>
-              <h1>{t('Fichas de RPG')}</h1>
+              <h1>Dicebound</h1>
+              <p className={styles.productSubtitle}>{t('Suas fichas de RPG em um só lugar.')}</p>
             </div>
           </div>
           <div className={styles.headerAction}><LanguageSelector /></div>

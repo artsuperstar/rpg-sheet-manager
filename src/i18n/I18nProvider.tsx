@@ -21,7 +21,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useLayoutEffect(() => {
     document.documentElement.lang = locale
-    document.title = globalMessages['Fichas de RPG'][locale]
+    document.title = 'Dicebound'
   }, [locale])
 
   const value: I18nValue = {

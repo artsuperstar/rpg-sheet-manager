@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('landing apresenta os dois sistemas sem criar fichas', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Fichas de RPG' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Dicebound' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Escolha um sistema de RPG' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'D&D', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Ordem Paranormal', exact: true })).toBeVisible()
