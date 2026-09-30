@@ -7,6 +7,16 @@ import { useActiveSystem } from './useActiveSystem'
 
 export function App() {
   const { activeSystem, selectSystem } = useActiveSystem()
+  const mobileSwitcher = activeSystem
+    ? <SystemSwitcher placement="sidebar" activeSystem={activeSystem} onSelect={(system) => {
+      selectSystem(system)
+      requestAnimationFrame(() => {
+        const trigger = document.querySelector<HTMLButtonElement>('[data-system-menu-trigger]')
+        if (trigger?.getClientRects().length) trigger.focus()
+        else document.querySelector<HTMLElement>('nav[data-placement="sidebar"]')?.focus()
+      })
+    }} />
+    : null
 
   return (
     <AppShell
@@ -16,8 +26,8 @@ export function App() {
         : undefined}
     >
       {activeSystem === null && <SystemChooser onSelect={selectSystem} />}
-      <DndWorkspace active={activeSystem === 'dnd'} />
-      <OrdemWorkspace active={activeSystem === 'ordem'} />
+      <DndWorkspace active={activeSystem === 'dnd'} mobileSystemSwitcher={mobileSwitcher} />
+      <OrdemWorkspace active={activeSystem === 'ordem'} mobileSystemSwitcher={mobileSwitcher} />
     </AppShell>
   )
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import mug from '../assets/tavern-mug.png'
 import styles from '../styles/shell.module.css'
 
 interface AppShellProps {
@@ -12,11 +13,14 @@ export function AppShell({ theme, headerAction, children }: AppShellProps) {
     <div className={styles.shell} data-system={theme}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>Biblioteca de fichas</p>
-            <h1>Fichas de RPG</h1>
+          <div className={styles.productBrand}>
+            <img src={mug} alt="" />
+            <div>
+              <p className={styles.kicker}>Biblioteca de fichas</p>
+              <h1>Fichas de RPG</h1>
+            </div>
           </div>
-          {headerAction}
+          {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
         </header>
         <main className={styles.main}>{children}</main>
       </div>

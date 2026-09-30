@@ -29,7 +29,7 @@ export function AttributesSkillsPanel({ attributes, skills, onChange }: {
           onChange={(score) => setDraft((current) => current ? { ...current, attributes: { ...current.attributes, [name]: score } } : null)} />)}</div>
       <div className={styles.skillEditor}>{skillDefinitions.map((definition) => <div className={styles.skillRow} key={definition.id}>
         <strong>{'displayLabel' in definition ? definition.displayLabel : definition.label}</strong>
-        <small>{attributeDefinitions.find(({ name }) => name === definition.attribute)?.abbreviation}</small>
+        <small className={styles.attributeCode} data-attribute={definition.attribute}>{attributeDefinitions.find(({ name }) => name === definition.attribute)?.abbreviation}</small>
         <NumberInput label={`Treino de ${definition.label}`} value={draft.skills[definition.id].trainingBonus}
           onChange={(value) => changeSkill(definition.id, 'trainingBonus', value)} />
         <NumberInput label={`Outros bônus de ${definition.label}`} value={draft.skills[definition.id].otherBonus}
@@ -47,7 +47,7 @@ export function AttributesSkillsPanel({ attributes, skills, onChange }: {
           <strong>{'displayLabel' in definition ? definition.displayLabel : definition.label}</strong>
           {'trainedOnly' in definition && definition.trainedOnly && <abbr title="Somente treinada">T</abbr>}
           {'loadPenalty' in definition && definition.loadPenalty && <abbr title="Sofre penalidade de carga">C</abbr>}
-          <small>{attributeDefinitions.find(({ name }) => name === definition.attribute)?.abbreviation}</small>
+          <small className={styles.attributeCode} data-attribute={definition.attribute}>{attributeDefinitions.find(({ name }) => name === definition.attribute)?.abbreviation}</small>
           <output aria-label={`Bônus de ${definition.label}`}>{formatBonus(skillTotal(skills[definition.id]))}</output>
         </div>)}</div>
       <p className={styles.legend}>T Somente treinada · C Penalidade de carga</p>

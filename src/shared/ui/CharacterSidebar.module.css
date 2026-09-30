@@ -23,5 +23,12 @@
 .navigation[data-collapsed='true'] .fullLabel { display: none; }
 .navigation[data-collapsed='true'] .compactLabel { display: inline; }
 .navigation[data-collapsed='true'] .option { justify-content: center; padding-inline: 0; }
-@media (max-width: 860px) and (min-width: 541px) { .list { display: flex; overflow-x: auto; overflow-y: hidden; } .option { flex: 0 0 190px; } .actions { grid-template-columns: 1fr 1fr; } .confirmation { grid-column: 1 / -1; } }
+@media (max-width: 860px) and (min-width: 541px) {
+  @container (min-width: 400px) {
+    .list { display: flex; overflow-x: auto; overflow-y: hidden; }
+    .option { flex: 0 0 190px; }
+    .actions { grid-template-columns: 1fr 1fr; }
+    .confirmation { grid-column: 1 / -1; }
+  }
+}
 @media (max-width: 860px) { .navigation[data-collapsed='true'] .heading { display: flex; } .navigation[data-collapsed='true'] .summary { display: grid; } .navigation[data-collapsed='true'] .fullLabel { display: inline; } .navigation[data-collapsed='true'] .compactLabel { display: none; } .navigation[data-collapsed='true'] .option { justify-content: flex-start; padding-inline: 0.5rem; } }

@@ -1,0 +1,98 @@
+import { expect, test } from '@playwright/test'
+
+test('landing apresenta os dois sistemas sem criar fichas', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Fichas de RPG' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Escolha um sistema de RPG' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'D&D', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ordem Paranormal', exact: true })).toBeVisible()
+  expect(await page.evaluate(() => localStorage.length)).toBe(0)
+})
+
+for (const width of [390, 540]) {
+  test(`troca entre sistemas fica no menu lateral em ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto('/?system=dnd')
+    const navigation = page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
+    await expect(navigation).toHaveCount(0)
+    const openDnd = page.getByRole('button', { name: 'Open character menu' })
+    await openDnd.click()
+    await expect(navigation).toBeVisible()
+    await navigation.getByRole('button', { name: 'Ordem Paranormal' }).click()
+    await expect(page).toHaveURL(/\?system=ordem$/)
+    const openOrdem = page.getByRole('button', { name: 'Abrir menu de personagens' })
+    await expect(openOrdem).toBeFocused()
+    await expect(openOrdem).toHaveAttribute('aria-expanded', 'false')
+    await openOrdem.click()
+    await navigation.getByRole('button', { name: 'D&D' }).click()
+    await expect(page).toHaveURL(/\?system=dnd$/)
+    await expect(openDnd).toBeFocused()
+    expect(await page.evaluate(() => localStorage.length)).toBe(0)
+  })
+}
+
+test('em 650px o switcher de D&D fica na sidebar e o de Ordem no menu', async ({ page }) => {
+  await page.setViewportSize({ width: 650, height: 844 })
+  await page.goto('/?system=dnd')
+  const navigation = page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
+  await expect(navigation).toBeVisible()
+  await navigation.getByRole('button', { name: 'Ordem Paranormal' }).click()
+  const openOrdem = page.getByRole('button', { name: 'Abrir menu de personagens' })
+  await expect(openOrdem).toBeFocused()
+  await openOrdem.click()
+  await expect(navigation.getByRole('button', { name: 'Ordem Paranormal' })).toHaveCSS('opacity', '1')
+  const create = page.getByRole('button', { name: 'Novo agente' })
+  const remove = page.getByRole('button', { name: 'Excluir selecionado' })
+  const createBox = await create.boundingBox()
+  const removeBox = await remove.boundingBox()
+  expect(createBox).not.toBeNull()
+  expect(removeBox).not.toBeNull()
+  expect(removeBox!.y).toBeGreaterThan(createBox!.y + createBox!.height)
+  await navigation.getByRole('button', { name: 'D&D' }).click()
+  await expect(navigation).toBeFocused()
+  await expect(page).toHaveURL(/\?system=dnd$/)
+})
+
+test('troca de sistema continua disponível no erro de leitura no celular', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.addInitScript(() => {
+    localStorage.setItem('rpg-fichas:v1:ordem:index', '{invalid-json')
+  })
+  await page.goto('/?system=ordem')
+  await expect(page.getByRole('alert')).toContainText('Erro de leitura')
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
+  await expect(page.getByRole('region', { name: 'D&D' })).toBeVisible()
+})
+
+test('Ordem mostra NEX e PE no mesmo card e mantém campos separados na edição', async ({ page }) => {
+  await page.goto('/?system=ordem')
+  await page.getByRole('button', { name: 'Criar ficha' }).click()
+  const metrics = page.getByRole('group', { name: 'NEX e limite de PE por rodada' })
+  await expect(metrics).toContainText('NEX')
+  await expect(metrics).toContainText('Limite de PE/Rodada')
+  await page.getByRole('button', { name: 'Editar informações básicas' }).click()
+  const editor = page.getByRole('dialog', { name: 'Editar informações básicas' })
+  await expect(editor.getByRole('textbox', { name: 'NEX (%)' })).toBeVisible()
+  await expect(editor.getByRole('textbox', { name: 'Limite de PE/Rodada' })).toBeVisible()
+  await editor.getByRole('textbox', { name: 'NEX (%)' }).fill('25')
+  await editor.getByRole('textbox', { name: 'NEX (%)' }).press('Tab')
+  await editor.getByRole('textbox', { name: 'Limite de PE/Rodada' }).fill('3')
+  await editor.getByRole('textbox', { name: 'Limite de PE/Rodada' }).press('Tab')
+  await editor.getByRole('button', { name: 'Salvar' }).click()
+  await expect(metrics).toContainText('25%')
+  await expect(metrics).toContainText('3')
+})
+
+test('siglas das perícias de Ordem repetem as cores dos atributos', async ({ page }) => {
+  await page.goto('/?system=ordem')
+  await page.getByRole('button', { name: 'Criar ficha' }).click()
+  const panel = page.getByRole('region', { name: 'Atributos e perícias' })
+  for (const attribute of ['agility', 'strength', 'intellect', 'presence', 'vigor']) {
+    const badge = panel.locator(`small[data-attribute="${attribute}"]`).first()
+    const score = panel.locator(`div[data-attribute="${attribute}"]`).first()
+    const badgeColor = await badge.evaluate((element) => getComputedStyle(element).color)
+    const scoreColor = await score.evaluate((element) => getComputedStyle(element).borderLeftColor)
+    expect(badgeColor).toBe(scoreColor)
+  }
+})

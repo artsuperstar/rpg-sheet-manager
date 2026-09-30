@@ -1,16 +1,16 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useCharacterCollection } from '../../shared/collection/useCharacterCollection'
 import { CharacterSidebar } from '../../shared/ui/CharacterSidebar'
 import { useResponsiveMenu } from '../../shared/ui/useResponsiveMenu'
-import logo from './assets/players-tavern-logo.png'
+import logo from '../../shared/assets/tavern-mug.png'
 import { createDefaultDndCharacter } from './defaults'
 import { DndSheet } from './DndSheet'
 import { dndRepository } from './persistence'
 import styles from './styles/dnd.module.css'
 
-interface DndWorkspaceProps { active: boolean }
+interface DndWorkspaceProps { active: boolean; mobileSystemSwitcher: ReactNode }
 
-export function DndWorkspace({ active }: DndWorkspaceProps) {
+export function DndWorkspace({ active, mobileSystemSwitcher }: DndWorkspaceProps) {
   const collection = useCharacterCollection(dndRepository, createDefaultDndCharacter)
   const [collapsed, setCollapsed] = useState(false)
   const { open, openButtonRef, closeButtonRef, openMenu, close, closeIfOpen } = useResponsiveMenu(active, 541)
@@ -20,6 +20,7 @@ export function DndWorkspace({ active }: DndWorkspaceProps) {
   if (collection.status.type === 'read-error') return (
     <section className={styles.readError} aria-label="D&D">
       <h2>D&D</h2>
+      <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
       <div role="alert"><p>Erro de leitura: {collection.status.error.message}</p>
         <p>Os dados no dispositivo foram preservados. Corrija o problema e tente ler novamente.</p>
         <button type="button" onClick={collection.retryLoad}>Tentar ler novamente</button></div>
@@ -34,7 +35,7 @@ export function DndWorkspace({ active }: DndWorkspaceProps) {
     <section className={styles.workspace} aria-label="D&D">
       <h2 className={styles.visuallyHidden}>D&D</h2>
       <div className={styles.mobileHeader}>
-        <button ref={openButtonRef} type="button" aria-label="Open character menu" aria-controls="dnd-character-sidebar"
+        <button ref={openButtonRef} data-system-menu-trigger type="button" aria-label="Open character menu" aria-controls="dnd-character-sidebar"
           aria-expanded={open} onClick={openMenu}>☰</button>
         <img src={logo} alt="" /><span>Character sheets<br /><strong>The Player&apos;s Tavern</strong></span>
       </div>
@@ -49,6 +50,7 @@ export function DndWorkspace({ active }: DndWorkspaceProps) {
           <span className={styles.brandMark}>A</span>
           <span><small>Character sheets</small><strong>Adventurer&apos;s Ledger</strong></span>
         </div>
+        <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
         <CharacterSidebar items={items} activeId={collection.snapshot?.activeCharacterId ?? null}
           collapsed={collapsed}
           onSelect={(id) => { collection.select(id); closeIfOpen() }}

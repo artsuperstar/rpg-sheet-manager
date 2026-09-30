@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useCharacterCollection } from '../../shared/collection/useCharacterCollection'
 import { CharacterSidebar } from '../../shared/ui/CharacterSidebar'
 import { useResponsiveMenu } from '../../shared/ui/useResponsiveMenu'
@@ -12,7 +13,7 @@ const sidebarLabels = {
   unnamed: 'Agente sem nome',
 }
 
-export function OrdemWorkspace({ active }: { active: boolean }) {
+export function OrdemWorkspace({ active, mobileSystemSwitcher }: { active: boolean; mobileSystemSwitcher: ReactNode }) {
   const collection = useCharacterCollection(ordemRepository, createDefaultOrdemCharacter)
   const { open, openButtonRef, closeButtonRef, openMenu, close, closeIfOpen } = useResponsiveMenu(active, 651)
 
@@ -21,6 +22,7 @@ export function OrdemWorkspace({ active }: { active: boolean }) {
     <h2>Ordem Paranormal</h2><div role="alert"><p>Erro de leitura: {collection.status.error.message}</p>
       <p>Os dados no dispositivo foram preservados. Corrija o problema e tente ler novamente.</p>
       <button type="button" onClick={collection.retryLoad}>Tentar ler novamente</button></div>
+    <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
   </section>
 
   const items = collection.snapshot?.characters.map((character) => ({
@@ -30,13 +32,14 @@ export function OrdemWorkspace({ active }: { active: boolean }) {
   })) ?? []
   return <section className={styles.workspace} aria-label="Ordem Paranormal">
     <h2 className={styles.visuallyHidden}>Ordem Paranormal</h2>
-    <div className={styles.mobileHeader}><button ref={openButtonRef} type="button" aria-label="Abrir menu de personagens"
+    <div className={styles.mobileHeader}><button ref={openButtonRef} data-system-menu-trigger type="button" aria-label="Abrir menu de personagens"
       aria-controls="ordem-character-sidebar" aria-expanded={open} onClick={openMenu}>☰</button>
       <strong>Arquivo de agentes</strong></div>
     <aside id="ordem-character-sidebar" className={styles.sidebar} data-mobile-open={open}>
       <button ref={closeButtonRef} className={styles.mobileClose} type="button" aria-label="Fechar menu de personagens"
         onClick={close}>×</button>
       <div className={styles.brand}><span className={styles.brandMark}>A</span><span><small>Ordem Paranormal</small><strong>Arquivo de Agentes</strong></span></div>
+      <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
       <CharacterSidebar items={items} activeId={collection.snapshot?.activeCharacterId ?? null}
         labels={sidebarLabels}
         onSelect={(id) => { collection.select(id); closeIfOpen() }}

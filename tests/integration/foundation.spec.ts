@@ -92,6 +92,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     await expectNoHorizontalOverflow(page)
 
     await page.getByRole('button', { name: 'D&D' }).click()
+    if (width <= 540) await page.getByRole('button', { name: 'Open character menu' }).click()
     const switcher = page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
     await expect(switcher.getByRole('button', { name: 'Ordem Paranormal' })).toBeInViewport()
     await expectNoHorizontalOverflow(page)

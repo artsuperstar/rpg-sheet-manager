@@ -31,9 +31,12 @@ export function BasicInfoPanel({ value, onChange }: { value: Info; onChange: (ne
         onChange({ ...draft, name: draft.name.trim() }); setDraft(null)
       }} />
     </div> : <div className={styles.summaryGrid}>
-      {([['Origem', value.origin || '—'], ['Classe', value.className || '—'], ['Trilha', value.track || '—'],
-        ['NEX', `${value.nex}%`], ['Limite de PE/Rodada', value.effortPerRoundLimit]] as const).map(([label, content]) =>
+      {([['Origem', value.origin || '—'], ['Classe', value.className || '—'], ['Trilha', value.track || '—']] as const).map(([label, content]) =>
         <div className={styles.summaryCell} key={label}><span>{label}</span><strong>{content}</strong></div>)}
+      <div className={styles.summaryMetrics} role="group" aria-label="NEX e limite de PE por rodada">
+        <div><span>NEX</span><strong>{value.nex}%</strong></div>
+        <div><span>Limite de PE/Rodada</span><strong>{value.effortPerRoundLimit}</strong></div>
+      </div>
     </div>}
   </section>
 }
