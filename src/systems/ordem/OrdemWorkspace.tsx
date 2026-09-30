@@ -9,7 +9,7 @@ import styles from './styles/ordem.module.css'
 import sigil from './assets/ordem-sigil.png'
 import { useI18n } from '../../i18n/useI18n'
 
-export function OrdemWorkspace({ active, mobileSystemSwitcher }: { active: boolean; mobileSystemSwitcher: ReactNode }) {
+export function OrdemWorkspace({ active, systemNavigation }: { active: boolean; systemNavigation: ReactNode }) {
   const { ordem: t, global: g } = useI18n()
   const collection = useCharacterCollection(ordemRepository, () => {
     const character = createDefaultOrdemCharacter()
@@ -19,10 +19,10 @@ export function OrdemWorkspace({ active, mobileSystemSwitcher }: { active: boole
 
   if (!active) return null
   if (collection.status.type === 'read-error') return <section className={styles.readError} aria-label="Ordem Paranormal">
-    <h2>Ordem Paranormal</h2><div role="alert"><p>{g('Erro de leitura:')} {collection.status.error.message}</p>
+    <h1>Ordem Paranormal</h1><div role="alert"><p>{g('Erro de leitura:')} {collection.status.error.message}</p>
       <p>{g('Os dados no dispositivo foram preservados. Corrija o problema e tente ler novamente.')}</p>
       <button type="button" onClick={collection.retryLoad}>{g('Tentar ler novamente')}</button></div>
-    <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
+    <div className={styles.systemNavigation}>{systemNavigation}</div>
   </section>
 
   const items = collection.snapshot?.characters.map((character) => ({
@@ -31,15 +31,15 @@ export function OrdemWorkspace({ active, mobileSystemSwitcher }: { active: boole
     summary: `${character.basicInfo.nex}% NEX${character.basicInfo.className ? ` · ${character.basicInfo.className}` : ''}`,
   })) ?? []
   return <section className={styles.workspace} aria-label="Ordem Paranormal">
-    <h2 className={styles.visuallyHidden}>Ordem Paranormal</h2>
+    <h1 className={styles.visuallyHidden}>Ordem Paranormal</h1>
     <div className={styles.mobileHeader}><button ref={openButtonRef} data-system-menu-trigger type="button" aria-label={g('Abrir menu de personagens')}
       aria-controls="ordem-character-sidebar" aria-expanded={open} onClick={openMenu}>☰</button>
-      <strong>{t('Arquivo de agentes')}</strong></div>
+      <img className={styles.mobileBrandMark} src={sigil} alt="" /><strong>{t('Arquivo de Agentes')}</strong></div>
     <aside id="ordem-character-sidebar" className={styles.sidebar} data-mobile-open={open}>
       <button ref={closeButtonRef} className={styles.mobileClose} type="button" aria-label={g('Fechar menu de personagens')}
         onClick={close}>×</button>
       <div className={styles.brand}><img className={styles.brandMark} src={sigil} alt="" /><span><small>Ordem Paranormal</small><strong>{t('Arquivo de Agentes')}</strong></span></div>
-      <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
+      <div className={styles.systemNavigation}>{systemNavigation}</div>
       <CharacterSidebar items={items} activeId={collection.snapshot?.activeCharacterId ?? null}
         labels={{ heading: t('Seus agentes'), create: t('Novo agente'), delete: t('Excluir selecionado'),
           confirm: (name) => `${t('Excluir')} ${name || t('este agente')}?`, cancel: g('Cancelar'),

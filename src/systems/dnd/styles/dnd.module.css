@@ -13,7 +13,12 @@
 .brand strong { font-family: Cinzel, Georgia, serif; font-size: 0.82rem; line-height: 1.3; }
 .brandMark { flex: 0 0 42px; width: 42px; height: 42px; border: 1px solid #b76a60; border-radius: 50%; padding: 3px; background: #7c302d; object-fit: contain; }
 .sidebarStatus { margin: 12px 0 0; color: #a99c91; font-size: 0.7rem; text-align: center; }
-.mobileSystemSwitcher { --menu-nav-text: #f3ecdd; --menu-nav-muted: #c9b8a6; --menu-nav-border: #765c51; --menu-nav-active: #e6b39b; --menu-nav-surface: #392d27; display: none; }
+.systemNavigation { --menu-nav-text: #f3ecdd; --menu-nav-muted: #c9b8a6; --menu-nav-border: #765c51; --menu-nav-active: #e6b39b; --menu-nav-surface: #392d27; }
+.sidebar[data-collapsed='true'] .systemNavigation nav > span,
+.sidebar[data-collapsed='true'] .systemNavigation [role='group'] > span { display: none; }
+.sidebar[data-collapsed='true'] .systemNavigation nav > div,
+.sidebar[data-collapsed='true'] .systemNavigation [role='group'] > div { display: grid; grid-template-columns: minmax(0, 1fr); }
+.sidebar[data-collapsed='true'] .systemNavigation button { width: 100%; padding-inline: 2px; overflow-wrap: anywhere; font-size: .62rem; }
 .sidebar[data-collapsed='true'] .sidebarStatus { display: none; }
 .mobileHeader, .mobileClose, .backdrop { display: none; }
 .sheetHeader { margin: 8px 0 22px; }
@@ -115,7 +120,7 @@
 .notes textarea { min-height: 150px; margin-top: 12px; resize: vertical; line-height: 1.5; }
 .emptyCard, .readError { display: grid; justify-items: center; gap: 12px; border: 1px solid #bbaa90; border-top: 3px solid #7c302d; border-radius: 7px; padding: 40px 20px; background: #faf5ea; text-align: center; }
 .emptyCard img { width: 82px; height: 82px; object-fit: contain; }
-.emptyCard h3, .readError h2 { margin: 0; font-family: Cinzel, Georgia, serif; }
+.emptyCard h3, .readError h1 { margin: 0; font-family: Cinzel, Georgia, serif; }
 .emptyCard p { margin: 0; }
 .readError { justify-items: start; text-align: left; }
 .persistenceError { position: sticky; top: 8px; z-index: 10; margin-bottom: 12px; border: 2px solid #7c302d; border-radius: 7px; padding: 12px; background: #fff5e3; }
@@ -124,6 +129,6 @@
 @media (max-width: 860px) { .workspace, .workspace:has(.sidebar[data-collapsed='true']) { grid-template-columns: minmax(0, 1fr); } .sidebar { position: static; max-height: none; min-height: 0; } .sidebar[data-collapsed='true'] { padding: 18px; } .sidebar[data-collapsed='true'] .brand > span:last-child { display: grid; } .sidebar[data-collapsed='true'] .sidebarStatus { display: block; } .dashboard { grid-template-columns: minmax(0, 1fr); } .abilities, .combat, .attacks, .equipment, .features, .notes { grid-column: 1; grid-row: auto; } .identitySummary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 540px) { .workspace { display: block; } .mobileHeader { position: sticky; top: 8px; z-index: 20; display: flex; align-items: center; gap: 10px; min-height: 64px; margin-bottom: 18px; border: 1px solid #a99578; border-radius: 9px; padding: 6px 10px; color: #f3ecdd; background: #29211d; } .mobileHeader button { width: 44px; min-height: 44px; border: 1px solid #765c51; border-radius: 6px; color: white; background: transparent; } .mobileHeader img { width: 46px; height: 46px; object-fit: contain; } .mobileHeader span { font-size: 0.63rem; letter-spacing: 0.08em; text-transform: uppercase; } .mobileHeader strong { font-family: Cinzel, Georgia, serif; font-size: 0.83rem; letter-spacing: 0; } .sidebar, .sidebar[data-collapsed='true'] { position: fixed; inset: 0 auto 0 0; z-index: 40; width: min(300px, 86vw); min-height: 100dvh; max-height: 100dvh; border-radius: 0 9px 9px 0; transform: translateX(-105%); transition: transform 180ms ease; } .sidebar[data-mobile-open='true'] { transform: translateX(0); } .sidebar .brand { padding-right: 30px; } .sidebar .brand > span:last-child { display: grid; } .collapseButton { display: none; } .mobileClose { position: absolute; top: 10px; right: 10px; display: grid; width: 38px; min-height: 38px; place-items: center; border: 1px solid #765c51; border-radius: 5px; color: white; background: transparent; font-size: 1.2rem; } .backdrop[data-mobile-open='true'] { position: fixed; inset: 0; z-index: 30; display: block; width: 100%; border: 0; background: rgb(24 17 14 / 58%); } .card { padding: 15px; } .identityEditorGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .identityEditorGrid > :first-child { grid-column: span 2; } .abilityEditorGrid { grid-template-columns: minmax(0, 1fr); } .skillEditor { grid-column: 1; } .attackEditorRow { grid-template-columns: minmax(0, 1fr) 76px 38px; } .attackEditorRow > :nth-child(3) { grid-column: 1 / span 2; } .attackEditorRow > :last-child { grid-column: 3; grid-row: 1 / span 2; } .slotEditorRow { grid-template-columns: 72px 76px minmax(0, 1fr) 34px; gap: 5px; } .equipmentLayout { grid-template-columns: 66px minmax(0, 1fr); gap: 10px; } .currency { padding-right: 10px; } .equipmentRow { grid-template-columns: minmax(0, 1fr) 48px 34px; gap: 5px; } .counterRow { flex-wrap: wrap; } .counterActions { margin-left: auto; } }
 @media (max-width: 340px) { .featureList .counterRow { display: grid; } .featureList .counterActions { justify-content: flex-end; } .trackingOptions { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 650px) { .mobileSystemSwitcher { display: block; } }
+@media (max-width: 860px) { .sidebar[data-collapsed='true'] .systemNavigation nav > span, .sidebar[data-collapsed='true'] .systemNavigation [role='group'] > span { display: initial; } .sidebar[data-collapsed='true'] .systemNavigation nav > div, .sidebar[data-collapsed='true'] .systemNavigation [role='group'] > div { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sidebar[data-collapsed='true'] .systemNavigation button { padding-inline: 4px; font-size: .78rem; } }
 @media (max-width: 540px) { .sidebar { visibility: hidden; }.sidebar[data-mobile-open='true'] { visibility: visible; } }
 @media (prefers-reduced-motion: reduce) { .sidebar { transition: none; } }

@@ -6,16 +6,16 @@ import { LanguageSelector } from '../../i18n/LanguageSelector'
 
 interface AppShellProps {
   theme?: string
-  headerAction?: ReactNode
+  showHeader?: boolean
   children: ReactNode
 }
 
-export function AppShell({ theme, headerAction, children }: AppShellProps) {
+export function AppShell({ theme, showHeader = true, children }: AppShellProps) {
   const { global: t } = useI18n()
   return (
     <div className={styles.shell} data-system={theme}>
       <div className={styles.container}>
-        <header className={styles.header}>
+        {showHeader && <header className={styles.header}>
           <div className={styles.productBrand}>
             <img src={mug} alt="" />
             <div>
@@ -23,8 +23,8 @@ export function AppShell({ theme, headerAction, children }: AppShellProps) {
               <h1>{t('Fichas de RPG')}</h1>
             </div>
           </div>
-          <div className={styles.headerAction}>{headerAction}<LanguageSelector /></div>
-        </header>
+          <div className={styles.headerAction}><LanguageSelector /></div>
+        </header>}
         <main className={styles.main}>{children}</main>
       </div>
     </div>

@@ -9,9 +9,9 @@ import { DndSheet } from './DndSheet'
 import { dndRepository } from './persistence'
 import styles from './styles/dnd.module.css'
 
-interface DndWorkspaceProps { active: boolean; mobileSystemSwitcher: ReactNode }
+interface DndWorkspaceProps { active: boolean; systemNavigation: ReactNode }
 
-export function DndWorkspace({ active, mobileSystemSwitcher }: DndWorkspaceProps) {
+export function DndWorkspace({ active, systemNavigation }: DndWorkspaceProps) {
   const { dnd: t, global: g } = useI18n()
   const collection = useCharacterCollection(dndRepository, () => ({
     ...createDefaultDndCharacter(), name: t('New Adventurer'),
@@ -23,8 +23,8 @@ export function DndWorkspace({ active, mobileSystemSwitcher }: DndWorkspaceProps
 
   if (collection.status.type === 'read-error') return (
     <section className={styles.readError} aria-label="D&D">
-      <h2>D&D</h2>
-      <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
+      <h1>D&D</h1>
+      <div className={styles.systemNavigation}>{systemNavigation}</div>
       <div role="alert"><p>{g('Erro de leitura:')} {collection.status.error.message}</p>
         <p>{g('Os dados no dispositivo foram preservados. Corrija o problema e tente ler novamente.')}</p>
         <button type="button" onClick={collection.retryLoad}>{g('Tentar ler novamente')}</button></div>
@@ -37,7 +37,7 @@ export function DndWorkspace({ active, mobileSystemSwitcher }: DndWorkspaceProps
 
   return (
     <section className={styles.workspace} aria-label="D&D">
-      <h2 className={styles.visuallyHidden}>D&D</h2>
+      <h1 className={styles.visuallyHidden}>D&D</h1>
       <div className={styles.mobileHeader}>
         <button ref={openButtonRef} data-system-menu-trigger type="button" aria-label={g('Abrir menu de personagens')} aria-controls="dnd-character-sidebar"
           aria-expanded={open} onClick={openMenu}>☰</button>
@@ -47,14 +47,14 @@ export function DndWorkspace({ active, mobileSystemSwitcher }: DndWorkspaceProps
         data-mobile-open={open}>
         <button ref={closeButtonRef} className={styles.mobileClose} type="button" aria-label={g('Fechar menu de personagens')}
           onClick={close}>×</button>
-        <button className={styles.collapseButton} type="button"
+        <button className={styles.collapseButton} data-sidebar-collapse type="button"
           aria-label={collapsed ? t('Expand sidebar') : t('Collapse sidebar')}
           onClick={() => setCollapsed((value) => !value)}>{collapsed ? `› ${t('Expand')}` : `‹ ${t('Collapse')}`}</button>
         <div className={styles.brand}>
           <img className={styles.brandMark} src={logo} alt="" />
           <span><small>{t('Character sheets')}</small><strong>{t("Adventurer's Ledger")}</strong></span>
         </div>
-        <div className={styles.mobileSystemSwitcher}>{mobileSystemSwitcher}</div>
+        <div className={styles.systemNavigation}>{systemNavigation}</div>
         <CharacterSidebar items={items} activeId={collection.snapshot?.activeCharacterId ?? null}
           collapsed={collapsed}
           labels={{ heading: t('Your characters'), create: t('New character'), delete: t('Delete selected'),

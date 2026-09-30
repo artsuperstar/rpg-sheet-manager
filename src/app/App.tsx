@@ -8,27 +8,26 @@ import { LanguageSelector } from '../i18n/LanguageSelector'
 
 export function App() {
   const { activeSystem, selectSystem } = useActiveSystem()
-  const mobileSwitcher = activeSystem
+  const systemNavigation = activeSystem
     ? <><SystemSwitcher placement="sidebar" activeSystem={activeSystem} onSelect={(system) => {
       selectSystem(system)
       requestAnimationFrame(() => {
         const trigger = document.querySelector<HTMLButtonElement>('[data-system-menu-trigger]')
         if (trigger?.getClientRects().length) trigger.focus()
-        else document.querySelector<HTMLElement>('nav[data-placement="sidebar"]')?.focus()
+        else {
+          const navigation = document.querySelector<HTMLElement>('nav[data-placement="sidebar"]')
+          if (navigation?.getClientRects().length) navigation.focus()
+          else document.querySelector<HTMLButtonElement>('[data-sidebar-collapse]')?.focus()
+        }
       })
     }} /><LanguageSelector placement="sidebar" /></>
     : null
 
   return (
-    <AppShell
-      theme={activeSystem ?? undefined}
-      headerAction={activeSystem
-        ? <SystemSwitcher activeSystem={activeSystem} onSelect={selectSystem} />
-        : undefined}
-    >
+    <AppShell theme={activeSystem ?? undefined} showHeader={activeSystem === null}>
       {activeSystem === null && <SystemChooser onSelect={selectSystem} />}
-      <DndWorkspace active={activeSystem === 'dnd'} mobileSystemSwitcher={mobileSwitcher} />
-      <OrdemWorkspace active={activeSystem === 'ordem'} mobileSystemSwitcher={mobileSwitcher} />
+      <DndWorkspace active={activeSystem === 'dnd'} systemNavigation={systemNavigation} />
+      <OrdemWorkspace active={activeSystem === 'ordem'} systemNavigation={systemNavigation} />
     </AppShell>
   )
 }

@@ -10,6 +10,7 @@
     repeating-linear-gradient(0deg, transparent 0 5px, rgb(75 48 27 / 1.5%) 6px 7px), #efe6d5;
 }
 .container { width: min(calc(100% - 2rem), var(--content-width)); margin-inline: auto; padding-block: var(--space-6) var(--space-8); }
+.shell[data-system] .container { padding-top: var(--space-3); }
 .header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); border-bottom: 1px solid var(--theme-border, #b9a78e); padding-bottom: var(--space-4); }
 .productBrand { display: flex; min-width: 0; align-items: center; gap: var(--space-3); }
 .productBrand img { width: 48px; height: 48px; flex: 0 0 48px; object-fit: contain; }
@@ -19,6 +20,7 @@
 .header h1 { font-size: clamp(1.55rem, 4vw, 2.25rem); }
 .kicker { margin: 0 0 var(--space-2); color: var(--theme-accent, #783b2b); font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .main { padding-top: var(--space-6); }
+.shell[data-system] .main { padding-top: 0; }
 .shell:not([data-system]) .container { max-width: 74rem; }
 .shell:not([data-system]) .header { border-color: #bea98a; }
 .shell:not([data-system]) .header h1 { color: #35251d; }
