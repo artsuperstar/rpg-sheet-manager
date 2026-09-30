@@ -1,5 +1,3 @@
-import type { AbilityName, RestType } from './model'
-
 export function abilityModifier(score: number): number {
   return Math.floor((score - 10) / 2)
 }
@@ -14,16 +12,4 @@ export function totalModifier(score: number, level: number, proficiencyMultiplie
 
 export function formatModifier(modifier: number): string {
   return modifier >= 0 ? `+${modifier}` : String(modifier)
-}
-
-export function abilityLabel(ability: AbilityName): string {
-  return ability.charAt(0).toUpperCase() + ability.slice(1)
-}
-
-export function abilityAbbreviation(ability: AbilityName): string {
-  return ability.slice(0, 3).toUpperCase()
-}
-
-export function restLabel(rest: RestType): string {
-  return rest === 'shortRest' ? 'SR' : 'LR'
 }
