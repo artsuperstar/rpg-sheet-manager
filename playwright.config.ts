@@ -5,6 +5,7 @@ export default defineConfig({
   fullyParallel: true,
   workers: 4,
   reporter: 'list',
+  snapshotPathTemplate: '{testDir}/__screenshots__/{arg}{ext}',
   use: {
     baseURL: 'http://127.0.0.1:4175',
     ...devices['Desktop Chrome'],

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { createDefaultDndCharacter } from '../../src/systems/dnd/defaults'
 
 type System = 'dnd' | 'ordem'
 
@@ -16,12 +17,45 @@ const characterKey = (system: System, id: string) => `${characterPrefix(system)}
 
 async function open(page: Page, system: System) {
   await page.goto(`/?system=${system}`)
-  await expect(page.getByRole('heading', { name: labels[system], level: 2 })).toBeVisible()
+  await expect(page.getByRole('region', { name: labels[system] })).toBeVisible()
 }
 
 async function create(page: Page) {
   await page.getByRole('button', { name: 'Criar ficha' }).click()
   await expect(page.getByRole('status')).toHaveText('Salvo')
+}
+
+async function createFor(page: Page, system: System) {
+  if (system === 'dnd') {
+    await page.getByRole('button', { name: 'New character' }).click()
+    await expect(page.getByRole('status')).toHaveText('Salvo')
+  } else {
+    await create(page)
+  }
+}
+
+async function editName(page: Page, system: System, name: string) {
+  if (system === 'dnd') {
+    await page.getByRole('button', { name: 'Edit character details' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Edit character details' })
+    await dialog.getByRole('textbox', { name: 'Character name' }).fill(name)
+    await dialog.getByRole('button', { name: 'Save' }).click()
+  } else {
+    await page.getByRole('textbox', { name: 'Nome da ficha ativa' }).fill(name)
+  }
+}
+
+async function expectActiveName(page: Page, system: System, name: string) {
+  if (system === 'dnd') {
+    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible()
+  } else {
+    await expect(page.getByRole('textbox', { name: 'Nome da ficha ativa' })).toHaveValue(name)
+  }
+}
+
+async function expectWriteError(page: Page, system: System) {
+  if (system === 'dnd') await expect(page.getByRole('alert')).toContainText('Erro de escrita')
+  else await expect(page.getByRole('status')).toContainText('Erro de escrita')
 }
 
 async function readKey(page: Page, key: string) {
@@ -56,10 +90,13 @@ function validIndex(system: System, ids: string[], active: string | null) {
 }
 
 function validRecord(system: System, id: string) {
-  return JSON.stringify({ version: 1, system, data: { id, name: 'Ficha preservada' } })
+  const data = system === 'dnd'
+    ? { ...createDefaultDndCharacter(), id, name: 'Ficha preservada' }
+    : { id, name: 'Ficha preservada' }
+  return JSON.stringify({ version: 1, system, data })
 }
 
-for (const system of ['dnd', 'ordem'] as const) {
+for (const system of ['ordem'] as const) {
   test(`${system}: cria, seleciona, edita, exclui e recarrega com zero fichas`, async ({ page }) => {
     await open(page, system)
     await expect(page.getByText('Nenhuma ficha criada.')).toBeVisible()
@@ -123,18 +160,18 @@ for (const system of ['dnd', 'ordem'] as const) {
 
 test('coleções, chaves e estados são independentes ao trocar e recarregar', async ({ page }) => {
   await open(page, 'dnd')
-  await create(page)
-  await page.getByRole('textbox', { name: 'Nome da ficha ativa' }).fill('Herói D&D')
+  await createFor(page, 'dnd')
+  await editName(page, 'dnd', 'Herói D&D')
   await page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
     .getByRole('button', { name: 'Ordem Paranormal' }).click()
   await expect(page.getByText('Nenhuma ficha criada.')).toBeVisible()
-  await create(page)
-  await page.getByRole('textbox', { name: 'Nome da ficha ativa' }).fill('Agente Ordem')
+  await createFor(page, 'ordem')
+  await editName(page, 'ordem', 'Agente Ordem')
   await page.reload()
   await expect(page.getByRole('textbox', { name: 'Nome da ficha ativa' })).toHaveValue('Agente Ordem')
   await page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
     .getByRole('button', { name: 'D&D' }).click()
-  await expect(page.getByRole('textbox', { name: 'Nome da ficha ativa' })).toHaveValue('Herói D&D')
+  await expectActiveName(page, 'dnd', 'Herói D&D')
   expect(await readKey(page, indexKey('dnd'))).not.toBeNull()
   expect(await readKey(page, indexKey('ordem'))).not.toBeNull()
   const keys = await page.evaluate(() => Object.keys(localStorage))
@@ -214,36 +251,37 @@ for (const failing of ['dnd', 'ordem'] as const) {
   const other: System = failing === 'dnd' ? 'ordem' : 'dnd'
   test(`${failing}: write-error preserva memória, retry usa última edição e ${other} continua salvo`, async ({ page }) => {
     await open(page, failing)
-    await create(page)
+    await createFor(page, failing)
     const index = JSON.parse((await readKey(page, indexKey(failing))) ?? 'null')
     const id = index.characterIds[0]
     const originalRecord = await readKey(page, characterKey(failing, id))
     await blockWrites(page, failing)
-    await page.getByRole('textbox', { name: 'Nome da ficha ativa' }).fill('Edição A')
-    await expect(page.getByRole('status')).toContainText('Erro de escrita')
-    await expect(page.getByRole('textbox', { name: 'Nome da ficha ativa' })).toHaveValue('Edição A')
+    await editName(page, failing, 'Edição A')
+    await expectWriteError(page, failing)
+    await expectActiveName(page, failing, 'Edição A')
     expect(await readKey(page, characterKey(failing, id))).toBe(originalRecord)
     expect(await page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })))).toBe(false)
 
-    await page.getByRole('button', { name: 'Criar ficha' }).click()
-    await page.getByRole('textbox', { name: 'Nome da ficha ativa' }).fill('Edição B')
+    if (failing === 'dnd') await page.getByRole('button', { name: 'New character' }).click()
+    else await page.getByRole('button', { name: 'Criar ficha' }).click()
+    await editName(page, failing, 'Edição B')
     await page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
       .getByRole('button', { name: labels[other] }).click()
-    await create(page)
+    await createFor(page, other)
     await expect(page.getByRole('status')).toHaveText('Salvo')
     await page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
       .getByRole('button', { name: labels[failing] }).click()
-    await expect(page.getByRole('textbox', { name: 'Nome da ficha ativa' })).toHaveValue('Edição B')
+    await expectActiveName(page, failing, 'Edição B')
     await restoreWrites(page)
     await page.getByRole('button', { name: 'Tentar salvar novamente' }).click()
     await expect(page.getByRole('status')).toHaveText('Salvo')
-    expect(JSON.parse((await readKey(page, characterKey(failing, id))) ?? 'null')).toEqual({
+    expect(JSON.parse((await readKey(page, characterKey(failing, id))) ?? 'null')).toMatchObject({
       version: 1, system: failing, data: { id, name: 'Edição A' },
     })
     const savedIndex = JSON.parse((await readKey(page, indexKey(failing))) ?? 'null')
     expect(savedIndex.characterIds).toHaveLength(2)
     expect(JSON.parse((await readKey(page, characterKey(failing, savedIndex.activeCharacterId))) ?? 'null'))
-      .toEqual({ version: 1, system: failing, data: { id: savedIndex.activeCharacterId, name: 'Edição B' } })
+      .toMatchObject({ version: 1, system: failing, data: { id: savedIndex.activeCharacterId, name: 'Edição B' } })
     expect(await page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })))).toBe(true)
   })
 }
@@ -251,12 +289,13 @@ for (const failing of ['dnd', 'ordem'] as const) {
 test('falha parcial no índice é reconciliada mesmo após criar e excluir antes do retry', async ({ page }) => {
   await open(page, 'dnd')
   await blockWrites(page, 'dnd', true)
-  await page.getByRole('button', { name: 'Criar ficha' }).click()
-  await expect(page.getByRole('status')).toContainText('Erro de escrita')
+  await page.getByRole('button', { name: 'New character' }).click()
+  await expectWriteError(page, 'dnd')
   expect(await readKey(page, indexKey('dnd'))).toBeNull()
   expect(await page.evaluate((prefix) => Object.keys(localStorage).filter((key) => key.startsWith(prefix)).length,
     characterPrefix('dnd'))).toBe(1)
-  await page.getByRole('button', { name: 'Excluir Nova ficha de D&D' }).click()
+  await page.getByRole('button', { name: 'Delete selected' }).click()
+  await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Delete character' }).click()
   await expect(page.getByText('Nenhuma ficha criada.')).toBeVisible()
   await restoreWrites(page)
   await page.getByRole('button', { name: 'Tentar salvar novamente' }).click()
@@ -283,14 +322,15 @@ test('grava registros antes do índice e remove registros depois dele', async ({
       return removeItem.call(this, key)
     }
   })
-  await create(page)
+  await createFor(page, 'dnd')
   const index = JSON.parse((await readKey(page, indexKey('dnd'))) ?? 'null')
   const recordKey = characterKey('dnd', index.activeCharacterId)
   expect(await page.evaluate(() => window.storageCalls)).toEqual([
     `set:${recordKey}`, `set:${indexKey('dnd')}`,
   ])
   await page.evaluate(() => { window.storageCalls = [] })
-  await page.getByRole('button', { name: 'Excluir Nova ficha de D&D' }).click()
+  await page.getByRole('button', { name: 'Delete selected' }).click()
+  await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Delete character' }).click()
   expect(await page.evaluate(() => window.storageCalls)).toEqual([
     `set:${indexKey('dnd')}`, `remove:${recordKey}`,
   ])

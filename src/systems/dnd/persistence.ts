@@ -1,4 +1,4 @@
 import { createRepository } from '../../shared/persistence/repository'
-import { isDndPlaceholderCharacter } from './placeholderModel'
+import { isDndCharacter } from './validation'
 
-export const dndRepository = createRepository('dnd', isDndPlaceholderCharacter)
+export const dndRepository = createRepository('dnd', isDndCharacter)

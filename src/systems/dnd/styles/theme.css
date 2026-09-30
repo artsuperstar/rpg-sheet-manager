@@ -1,4 +1,5 @@
 [data-system='dnd'] {
+  --content-width: 90rem;
   --theme-background: #e9e0cf;
   --theme-surface: #faf5ea;
   --theme-text: #2b2420;

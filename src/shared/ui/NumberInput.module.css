@@ -1,0 +1,31 @@
+.field {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.field span {
+  color: var(--theme-muted, #53645f);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--theme-border, #bbc8c2);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.5rem;
+  color: var(--theme-text, #192523);
+  background: var(--theme-surface, #fff);
+  font: inherit;
+  text-align: center;
+}
+
+.field input:focus-visible {
+  outline: var(--focus-width) solid var(--theme-focus, #285c92);
+  outline-offset: var(--focus-offset);
+}
