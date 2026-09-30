@@ -22,6 +22,7 @@ interface CharacterSidebarProps {
     confirm: (name: string) => string
     cancel: string
     confirmDelete: string
+    unnamed: string
   }
 }
 
@@ -29,11 +30,13 @@ interface CharacterSidebarProps {
 const defaultLabels = {
   heading: 'Your characters', create: 'New character', delete: 'Delete selected',
   confirm: (name: string) => `Delete ${name || 'this character'}?`, cancel: 'Cancel', confirmDelete: 'Delete character',
+  unnamed: 'Unnamed character',
 }
 
 export function CharacterSidebar({ items, activeId, collapsed = false, onSelect, onCreate, onDelete, onRequestExpand, labels = defaultLabels }: CharacterSidebarProps) {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const pendingItem = items.find(({ id }) => id === pendingDelete)
+  const confirmationText = pendingItem ? labels.confirm(pendingItem.name) : null
   const deleteButton = useRef<HTMLButtonElement>(null)
   const cancelButton = useRef<HTMLButtonElement>(null)
 
@@ -49,14 +52,14 @@ export function CharacterSidebar({ items, activeId, collapsed = false, onSelect,
   return (
     <div className={styles.navigation} data-collapsed={collapsed}>
       <div className={styles.heading}><span>{labels.heading}</span><span>{items.length}</span></div>
-      <nav className={styles.list} aria-label="Characters">
+      <nav className={styles.list} aria-label={labels.heading}>
         {items.map(({ id, name, summary }) => (
           <button className={styles.option} data-active={id === activeId} type="button" key={id}
-            aria-label={`${name || 'Unnamed character'}, ${summary}`}
+            aria-label={`${name || labels.unnamed}, ${summary}`}
             aria-current={id === activeId ? 'page' : undefined}
             onClick={() => { setPendingDelete(null); onSelect(id) }}>
             <span className={styles.initial} aria-hidden="true">{(name || '?').charAt(0).toUpperCase()}</span>
-            <span className={styles.summary}><strong>{name || 'Unnamed character'}</strong><small>{summary}</small></span>
+            <span className={styles.summary}><strong>{name || labels.unnamed}</strong><small>{summary}</small></span>
           </button>
         ))}
       </nav>
@@ -71,9 +74,9 @@ export function CharacterSidebar({ items, activeId, collapsed = false, onSelect,
           <span className={styles.fullLabel}>{labels.delete}</span><span className={styles.compactLabel}>×</span>
         </button>
         {pendingItem && (
-          <div className={styles.confirmation} role="group" aria-label="Confirm character deletion"
+          <div className={styles.confirmation} role="group" aria-label={confirmationText ?? undefined}
             onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); cancelDelete() } }}>
-            <p>{labels.confirm(pendingItem.name)}</p>
+            <p>{confirmationText}</p>
             <button ref={cancelButton} type="button" onClick={cancelDelete}>{labels.cancel}</button>
             <button type="button" onClick={() => { setPendingDelete(null); onDelete(pendingItem.id) }}>{labels.confirmDelete}</button>
           </div>

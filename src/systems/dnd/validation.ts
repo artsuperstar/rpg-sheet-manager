@@ -1,4 +1,4 @@
-import { isRecord } from '../../shared/persistence/types'
+import { isRecord } from '../../shared/validation'
 import { abilityNames, skillDefinitions, type DndCharacter } from './model'
 
 const id = (value: unknown): value is string => typeof value === 'string' && value.length > 0

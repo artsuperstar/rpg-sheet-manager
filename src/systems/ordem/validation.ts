@@ -1,4 +1,4 @@
-import { isRecord } from '../../shared/persistence/types'
+import { isRecord } from '../../shared/validation'
 import { attributeNames, type OrdemCharacter } from './model'
 import { inventoryCategories, skillDefinitions } from './rules'
 

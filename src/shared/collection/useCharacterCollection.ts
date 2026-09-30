@@ -47,18 +47,22 @@ export function useCharacterCollection<T extends Identified>(
     setState(next)
   }
 
+  function save(previous: CollectionSnapshot<T>, snapshot: CollectionSnapshot<T>) {
+    try {
+      repository.save(previous, snapshot)
+      persisted.current = snapshot
+      publish({ snapshot, status: { type: 'saved' } })
+    } catch (error) {
+      publish({ snapshot, status: { type: 'write-error', error: asError(error) } })
+    }
+  }
+
   function commit(nextSnapshot: CollectionSnapshot<T>) {
     const previous = persisted.current
     if (previous === null || current.current.status.type === 'read-error') return
 
     publish({ snapshot: nextSnapshot, status: current.current.status })
-    try {
-      repository.save(previous, nextSnapshot)
-      persisted.current = nextSnapshot
-      publish({ snapshot: nextSnapshot, status: { type: 'saved' } })
-    } catch (error) {
-      publish({ snapshot: nextSnapshot, status: { type: 'write-error', error: asError(error) } })
-    }
+    save(previous, nextSnapshot)
   }
 
   function create() {
@@ -114,13 +118,7 @@ export function useCharacterCollection<T extends Identified>(
     const snapshot = current.current.snapshot
     const previous = persisted.current
     if (previous === null) return
-    try {
-      repository.save(previous, snapshot)
-      persisted.current = snapshot
-      publish({ snapshot, status: { type: 'saved' } })
-    } catch (error) {
-      publish({ snapshot, status: { type: 'write-error', error: asError(error) } })
-    }
+    save(previous, snapshot)
   }
 
   function retryLoad() {

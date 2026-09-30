@@ -1,6 +1,7 @@
 import type { CollectionSnapshot } from '../collection/types'
+import { isRecord } from '../validation'
 import { systemKeys } from './keys'
-import { isRecord, type Repository } from './types'
+import type { Repository } from './types'
 import { STORAGE_VERSION } from './version'
 
 type Identified = { readonly id: string }

@@ -124,7 +124,7 @@ for (const system of ['ordem'] as const) {
 
     await create(page)
     await editName(page, system, 'Beta')
-    const list = page.getByRole('navigation', { name: 'Characters' })
+    const list = page.getByRole('navigation', { name: 'Seus agentes' })
     await expect(list.getByRole('button')).toHaveCount(2)
     await list.getByRole('button', { name: /Alpha/ }).click()
     await expectActiveName(page, system, 'Alpha')
@@ -136,7 +136,7 @@ for (const system of ['ordem'] as const) {
     await expectActiveName(page, system, 'Alpha editada')
     await list.getByRole('button', { name: /Beta/ }).click()
     await page.getByRole('button', { name: 'Excluir selecionado' }).click()
-    await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Excluir agente' }).click()
+    await page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Excluir agente' }).click()
     await expectActiveName(page, system, 'Alpha editada')
     await expect(list.getByRole('button')).toHaveCount(1)
 
@@ -144,10 +144,10 @@ for (const system of ['ordem'] as const) {
     await editName(page, system, 'Gamma')
     await list.getByRole('button', { name: /Alpha editada/ }).click()
     await page.getByRole('button', { name: 'Excluir selecionado' }).click()
-    await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Excluir agente' }).click()
+    await page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Excluir agente' }).click()
     await expectActiveName(page, system, 'Gamma')
     await page.getByRole('button', { name: 'Excluir selecionado' }).click()
-    await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Excluir agente' }).click()
+    await page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Excluir agente' }).click()
     await expect(page.getByText('Nenhuma ficha criada.')).toBeVisible()
     expect(JSON.parse((await readKey(page, indexKey(system))) ?? 'null')).toEqual({
       version: 1, system, characterIds: [], activeCharacterId: null,
@@ -163,7 +163,7 @@ for (const system of ['ordem'] as const) {
     await create(page)
     await editName(page, system, 'Última')
     await page.getByRole('button', { name: 'Excluir selecionado' }).click()
-    await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Excluir agente' }).click()
+    await page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Excluir agente' }).click()
     await expectActiveName(page, system, 'Primeira')
   })
 }
@@ -307,7 +307,7 @@ test('falha parcial no índice é reconciliada mesmo após criar e excluir antes
   expect(await page.evaluate((prefix) => Object.keys(localStorage).filter((key) => key.startsWith(prefix)).length,
     characterPrefix('dnd'))).toBe(1)
   await page.getByRole('button', { name: 'Delete selected' }).click()
-  await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Delete character' }).click()
+  await page.getByRole('group', { name: /^Delete / }).getByRole('button', { name: 'Delete character' }).click()
   await expect(page.getByText('Nenhuma ficha criada.')).toBeVisible()
   await restoreWrites(page)
   await page.getByRole('button', { name: 'Tentar salvar novamente' }).click()
@@ -342,7 +342,7 @@ test('grava registros antes do índice e remove registros depois dele', async ({
   ])
   await page.evaluate(() => { window.storageCalls = [] })
   await page.getByRole('button', { name: 'Delete selected' }).click()
-  await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Delete character' }).click()
+  await page.getByRole('group', { name: /^Delete / }).getByRole('button', { name: 'Delete character' }).click()
   expect(await page.evaluate(() => window.storageCalls)).toEqual([
     `set:${indexKey('dnd')}`, `remove:${recordKey}`,
   ])

@@ -8,6 +8,7 @@ declare global {
   interface Window {
     restoreProductSetItem?: () => void
     productStorageCalls?: string[]
+    unblockProductSystem?: (system: 'dnd' | 'ordem') => void
   }
 }
 
@@ -53,7 +54,7 @@ test('jornada do produto mantém coleções, conteúdo e seleção independentes
   await createOrdem(page); await renameOrdem(page, 'Agente X')
   await page.getByRole('textbox', { name: 'Anotações' }).fill('Pista principal')
   await createOrdem(page); await renameOrdem(page, 'Agente Y')
-  await page.getByRole('navigation', { name: 'Characters' }).getByRole('button', { name: /Agente X/ }).click()
+  await page.getByRole('navigation', { name: 'Seus agentes' }).getByRole('button', { name: /Agente X/ }).click()
   const ordemBefore = await index(page, ordemIndex)
   expect(ordemBefore.characterIds).toHaveLength(2)
   expect(ordemBefore.activeCharacterId).toBe(ordemBefore.characterIds[0])
@@ -85,7 +86,7 @@ test('jornada do produto mantém coleções, conteúdo e seleção independentes
 
   for (let count = 0; count < 2; count++) {
     await page.getByRole('button', { name: 'Delete selected' }).click()
-    await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Delete character' }).click()
+    await page.getByRole('group', { name: /^Delete / }).getByRole('button', { name: 'Delete character' }).click()
   }
   await expect(page.getByText('Nenhuma ficha criada.')).toBeVisible()
   expect(await index(page, dndIndex)).toMatchObject({ characterIds: [], activeCharacterId: null })
@@ -145,7 +146,7 @@ test('menu móvel não reabre ao voltar ao sistema e devolve foco ao gatilho', a
   await page.keyboard.press('Escape')
   await expect(openOrdem).toBeFocused()
   await openOrdem.click()
-  await page.getByRole('navigation', { name: 'Characters' }).getByRole('button').first().click()
+  await page.getByRole('navigation', { name: 'Seus agentes' }).getByRole('button').first().click()
   await expect(openOrdem).toBeFocused()
   await openOrdem.click()
   await page.setViewportSize({ width: 768, height: 800 })
@@ -157,7 +158,7 @@ test('confirmação de exclusão aceita Escape e restaura foco sem excluir', asy
   await page.goto('/?system=dnd'); await createDnd(page)
   const remove = page.getByRole('button', { name: 'Delete selected' })
   await remove.click()
-  await expect(page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Cancel' })).toBeFocused()
+  await expect(page.getByRole('group', { name: /^Delete / }).getByRole('button', { name: 'Cancel' })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(remove).toBeFocused()
   expect((await index(page, dndIndex)).characterIds).toHaveLength(1)
@@ -165,7 +166,7 @@ test('confirmação de exclusão aceita Escape e restaura foco sem excluir', asy
   await createOrdem(page)
   const removeOrdem = page.getByRole('button', { name: 'Excluir selecionado' })
   await removeOrdem.click()
-  await expect(page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Cancelar' })).toBeFocused()
+  await expect(page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Cancelar' })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(removeOrdem).toBeFocused()
 })
@@ -274,7 +275,7 @@ test('Ordem grava registro antes do índice e remove somente após atualizar o �
   expect(await page.evaluate(() => window.productStorageCalls)).toEqual([`set:${characterKey}`])
   await page.evaluate(() => { window.productStorageCalls = [] })
   await page.getByRole('button', { name: 'Excluir selecionado' }).click()
-  await page.getByRole('group', { name: 'Confirm character deletion' }).getByRole('button', { name: 'Excluir agente' }).click()
+  await page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Excluir agente' }).click()
   expect(await page.evaluate(() => window.productStorageCalls)).toEqual([
     `set:${ordemIndex}`, `remove:${characterKey}`,
   ])
@@ -361,4 +362,38 @@ test('troca de sistema mantém sidebar recolhida e descarta rascunhos não confi
   await expect(page.getByRole('dialog', { name: 'Editar informações básicas' })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Novo agente' })).toBeVisible()
   expect(await page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })))).toBe(true)
+})
+
+test('beforeunload continua ativo até os dois sistemas pendentes serem salvos', async ({ page }) => {
+  await page.goto('/?system=dnd')
+  await createDnd(page)
+  const switcher = page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
+  await switcher.getByRole('button', { name: 'Ordem Paranormal' }).click()
+  await createOrdem(page)
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem
+    const blocked = new Set(['dnd', 'ordem'])
+    window.unblockProductSystem = (system) => { blocked.delete(system) }
+    window.restoreProductSetItem = () => { Storage.prototype.setItem = original }
+    Storage.prototype.setItem = function (key, value) {
+      if ([...blocked].some((system) => key.startsWith(`rpg-fichas:v1:${system}:`))) {
+        throw new DOMException('Falha simulada', 'QuotaExceededError')
+      }
+      return original.call(this, key, value)
+    }
+  })
+  await renameOrdem(page, 'Ordem pendente')
+  await switcher.getByRole('button', { name: 'D&D' }).click()
+  await renameDnd(page, 'D&D pendente')
+  expect(await page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })))).toBe(false)
+  await page.evaluate(() => window.unblockProductSystem?.('dnd'))
+  await page.getByRole('button', { name: 'Tentar salvar novamente' }).click()
+  await expect(page.locator('p[role=status]')).toHaveText('Salvo')
+  expect(await page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })))).toBe(false)
+  await switcher.getByRole('button', { name: 'Ordem Paranormal' }).click()
+  await page.evaluate(() => window.unblockProductSystem?.('ordem'))
+  await page.getByRole('button', { name: 'Tentar salvar novamente' }).click()
+  await expect(page.locator('p[role=status]')).toHaveText('Salvo')
+  expect(await page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })))).toBe(true)
+  await page.evaluate(() => window.restoreProductSetItem?.())
 })
