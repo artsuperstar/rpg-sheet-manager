@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 
 for (const width of [390, 1440]) {
   test(`landing visual em ${width}px`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('rpg-fichas:preferences:locale', 'pt-BR'))
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Escolha um sistema de RPG' })).toBeVisible()
@@ -9,3 +10,12 @@ for (const width of [390, 1440]) {
     await expect(page).toHaveScreenshot(`landing--${width}--default.png`, { fullPage: true, animations: 'disabled' })
   })
 }
+
+test('landing visual em inglês no mobile', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('rpg-fichas:preferences:locale', 'en'))
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Choose an RPG system' })).toBeVisible()
+  await page.evaluate(() => document.fonts.ready.then(() => true))
+  await expect(page).toHaveScreenshot('landing--390--en.png', { fullPage: true, animations: 'disabled' })
+})

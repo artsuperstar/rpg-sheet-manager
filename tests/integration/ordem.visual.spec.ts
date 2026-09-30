@@ -3,6 +3,7 @@ import { createDefaultOrdemCharacter } from '../../src/systems/ordem/defaults'
 
 for (const width of [390, 1440]) {
   test(`Ordem sheet visual em ${width}px`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('rpg-fichas:preferences:locale', 'pt-BR'))
     await page.setViewportSize({ width, height: 900 })
     const character = { ...createDefaultOrdemCharacter(), id: 'ordem-visual' }
     character.basicInfo = { name: 'Helena Duarte', origin: 'Acadêmico', className: 'Ocultista', track: 'Graduado', nex: 25, effortPerRoundLimit: 3 }
@@ -26,3 +27,17 @@ for (const width of [390, 1440]) {
     await expect(page).toHaveScreenshot(`ordem--sheet--${width}--default.png`, { fullPage: true, animations: 'disabled' })
   })
 }
+
+test('Ordem sheet visual em inglês no mobile', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('rpg-fichas:preferences:locale', 'en'))
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.goto('/?system=ordem')
+  await page.getByRole('button', { name: 'Create sheet' }).click()
+  await expect(page.getByRole('heading', { name: 'New agent' })).toBeVisible()
+  await page.mouse.move(0, 0)
+  await page.evaluate(() => document.fonts.ready.then(() => true))
+  await expect(page).toHaveScreenshot('ordem--sheet--390--en.png', {
+    fullPage: true, animations: 'disabled',
+    mask: [page.getByRole('navigation', { name: 'Sheet sections' })], maskColor: '#0d1110',
+  })
+})

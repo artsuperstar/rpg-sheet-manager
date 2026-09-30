@@ -4,18 +4,19 @@ import { OrdemWorkspace } from '../systems/ordem/OrdemWorkspace'
 import { SystemChooser } from './SystemChooser'
 import { SystemSwitcher } from './SystemSwitcher'
 import { useActiveSystem } from './useActiveSystem'
+import { LanguageSelector } from '../i18n/LanguageSelector'
 
 export function App() {
   const { activeSystem, selectSystem } = useActiveSystem()
   const mobileSwitcher = activeSystem
-    ? <SystemSwitcher placement="sidebar" activeSystem={activeSystem} onSelect={(system) => {
+    ? <><SystemSwitcher placement="sidebar" activeSystem={activeSystem} onSelect={(system) => {
       selectSystem(system)
       requestAnimationFrame(() => {
         const trigger = document.querySelector<HTMLButtonElement>('[data-system-menu-trigger]')
         if (trigger?.getClientRects().length) trigger.focus()
         else document.querySelector<HTMLElement>('nav[data-placement="sidebar"]')?.focus()
       })
-    }} />
+    }} /><LanguageSelector placement="sidebar" /></>
     : null
 
   return (

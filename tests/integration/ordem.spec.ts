@@ -177,11 +177,11 @@ test('navegação por seções rola e hash de Ordem é limpo ao trocar de RPG', 
 
 test('cada sistema conserva sua própria ficha ativa entre trocas e reload', async ({ page }) => {
   await page.goto('/?system=dnd')
-  await page.getByRole('button', { name: 'New character' }).click()
-  await page.getByRole('button', { name: 'Edit character details' }).click()
-  await page.getByRole('dialog', { name: 'Edit character details' }).getByRole('textbox', { name: 'Character name' }).fill('Guerreira')
-  await page.getByRole('dialog', { name: 'Edit character details' }).getByRole('button', { name: 'Save' }).click()
-  await page.getByRole('button', { name: 'New character' }).click()
+  await page.getByRole('button', { name: 'Novo personagem' }).click()
+  await page.getByRole('button', { name: 'Editar detalhes do personagem' }).click()
+  await page.getByRole('dialog', { name: 'Editar detalhes do personagem' }).getByRole('textbox', { name: 'Nome do personagem' }).fill('Guerreira')
+  await page.getByRole('dialog', { name: 'Editar detalhes do personagem' }).getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('button', { name: 'Novo personagem' }).click()
   await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'Ordem Paranormal' }).click()
   await create(page)
   await page.getByRole('button', { name: 'Editar informações básicas' }).click()
@@ -190,13 +190,13 @@ test('cada sistema conserva sua própria ficha ativa entre trocas e reload', asy
   await create(page)
   await page.getByRole('navigation', { name: 'Seus agentes' }).getByRole('button', { name: /Ocultista/ }).click()
   await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
-  await expect(page.getByRole('heading', { name: 'New Adventurer' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Novo aventureiro' })).toBeVisible()
   await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'Ordem Paranormal' }).click()
   await expect(page.getByRole('heading', { name: 'Ocultista' })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Ocultista' })).toBeVisible()
   await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
-  await expect(page.getByRole('heading', { name: 'New Adventurer' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Novo aventureiro' })).toBeVisible()
   const indexes = await page.evaluate(() => ({
     dnd: JSON.parse(localStorage.getItem('rpg-fichas:v1:dnd:index') ?? 'null'),
     ordem: JSON.parse(localStorage.getItem('rpg-fichas:v1:ordem:index') ?? 'null'),
@@ -224,8 +224,8 @@ test('registro de Ordem inválido entra em read-error e D&D continua utilizável
   await open(page)
   await expect(page.getByRole('alert')).toContainText('Erro de leitura')
   await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
-  await page.getByRole('button', { name: 'New character' }).click()
-  await expect(page.getByRole('heading', { name: 'New Adventurer' })).toBeVisible()
+  await page.getByRole('button', { name: 'Novo personagem' }).click()
+  await expect(page.getByRole('heading', { name: 'Novo aventureiro' })).toBeVisible()
   expect(await page.evaluate((key) => localStorage.getItem(key), recordKey(id))).toContain('bad-ordem')
 })
 

@@ -3,19 +3,22 @@ import { NumberInput } from '../../../shared/ui/NumberInput'
 import type { OrdemCharacter, ResourceName } from '../model'
 import styles from '../styles/ordem.module.css'
 import { EditButton, EditorActions } from './Controls'
+import { useI18n } from '../../../i18n/useI18n'
+import { ordemResourceAbbreviation } from '../../../i18n/domainLabels'
 
 type Resources = OrdemCharacter['resources']
 type Combat = OrdemCharacter['combat']
 const entries = [
-  { key: 'hitPoints', short: 'PV', label: 'Pontos de Vida' },
-  { key: 'effortPoints', short: 'PE', label: 'Pontos de Esforço' },
-  { key: 'sanity', short: 'SAN', label: 'Sanidade' },
+  { key: 'hitPoints', label: 'Pontos de Vida' },
+  { key: 'effortPoints', label: 'Pontos de Esforço' },
+  { key: 'sanity', label: 'Sanidade' },
 ] as const
 type Draft = { maximums: Record<ResourceName, number>; defense: number; movement: string }
 
 export function ResourcesPanel({ resources, combat, onChange }: {
   resources: Resources; combat: Combat; onChange: (resources: Resources, combat: Combat) => void
 }) {
+  const { ordem: t, locale } = useI18n()
   const [draft, setDraft] = useState<Draft | null>(null)
   const valid = draft !== null && entries.every(({ key }) => Number.isSafeInteger(draft.maximums[key]) && draft.maximums[key] >= 0) &&
     Number.isSafeInteger(draft.defense) && draft.defense >= 0
@@ -28,32 +31,32 @@ export function ResourcesPanel({ resources, combat, onChange }: {
     }, { defense: draft.defense, movement: draft.movement.trim() })
     setDraft(null)
   }
-  return <section id="recursos" className={styles.card} aria-label="Recursos">
-    <div className={styles.heading}><div><small>Estado do agente</small><h2>Recursos</h2></div>
-      <div className={styles.headingActions}><span>Atualização direta</span>{draft
+  return <section id="recursos" className={styles.card} aria-label={t('Recursos')}>
+    <div className={styles.heading}><div><small>{t('Estado do agente')}</small><h2>{t('Recursos')}</h2></div>
+      <div className={styles.headingActions}><span>{t('Atualização direta')}</span>{draft
         ? <EditorActions canSave={valid} onCancel={() => setDraft(null)} onSave={save} />
-        : <EditButton label="Editar recursos" onClick={() => setDraft({
+        : <EditButton label={t('Editar recursos')} onClick={() => setDraft({
           maximums: { hitPoints: resources.hitPoints.maximum, effortPoints: resources.effortPoints.maximum,
             sanity: resources.sanity.maximum }, defense: combat.defense, movement: combat.movement,
         })} />}</div></div>
-    <div className={styles.resourceGrid}>{entries.map(({ key, short, label }) => <div className={styles.resourceCard} key={key}>
-      <div><strong>{short}</strong><small>{label}</small></div>
-      <NumberInput label={`${label} atuais`} min={0} max={resources[key].maximum} value={resources[key].current}
+    <div className={styles.resourceGrid}>{entries.map(({ key, label }) => <div className={styles.resourceCard} key={key}>
+      <div><strong>{ordemResourceAbbreviation(key, locale)}</strong><small>{t(label)}</small></div>
+      <NumberInput label={`${t(label)} ${t('atuais')}`} min={0} max={resources[key].maximum} value={resources[key].current}
         onChange={(current) => onChange({ ...resources, [key]: { ...resources[key], current } }, combat)} />
       <span>/</span>
-      {draft ? <NumberInput label={`${label} máximos`} min={0} value={draft.maximums[key]}
+      {draft ? <NumberInput label={`${t(label)} ${t('máximos')}`} min={0} value={draft.maximums[key]}
         onChange={(maximum) => setDraft((current) => current ? {
           ...current, maximums: { ...current.maximums, [key]: maximum },
-        } : null)} /> : <div className={styles.resourceMaximum}><small>Máximo</small><strong>{resources[key].maximum}</strong></div>}
+        } : null)} /> : <div className={styles.resourceMaximum}><small>{t('Máximo')}</small><strong>{resources[key].maximum}</strong></div>}
     </div>)}</div>
     <div className={styles.fixedGrid}>{draft ? <>
-      <NumberInput label="Defesa" min={0} value={draft.defense}
+      <NumberInput label={t('Defesa')} min={0} value={draft.defense}
         onChange={(defense) => setDraft((current) => current ? { ...current, defense } : null)} />
-      <label className={styles.field}><span>Deslocamento</span><input value={draft.movement} placeholder="Ex.: 9m / 6q"
+      <label className={styles.field}><span>{t('Deslocamento')}</span><input value={draft.movement} placeholder={t('Ex.: 9m / 6q')}
         onChange={(event) => setDraft((current) => current ? { ...current, movement: event.target.value } : null)} /></label>
     </> : <>
-      <div className={styles.summaryCell}><span>Defesa</span><strong>{combat.defense}</strong></div>
-      <div className={styles.summaryCell}><span>Deslocamento</span><strong>{combat.movement || '—'}</strong></div>
+      <div className={styles.summaryCell}><span>{t('Defesa')}</span><strong>{combat.defense}</strong></div>
+      <div className={styles.summaryCell}><span>{t('Deslocamento')}</span><strong>{combat.movement || '—'}</strong></div>
     </>}</div>
   </section>
 }

@@ -15,7 +15,7 @@ interface CharacterSidebarProps {
   onCreate: () => void
   onDelete: (id: string) => void
   onRequestExpand?: () => void
-  labels?: {
+  labels: {
     heading: string
     create: string
     delete: string
@@ -27,13 +27,7 @@ interface CharacterSidebarProps {
 }
 
 // Navegação recebe somente dados de apresentação; cada workspace controla o próprio layout.
-const defaultLabels = {
-  heading: 'Your characters', create: 'New character', delete: 'Delete selected',
-  confirm: (name: string) => `Delete ${name || 'this character'}?`, cancel: 'Cancel', confirmDelete: 'Delete character',
-  unnamed: 'Unnamed character',
-}
-
-export function CharacterSidebar({ items, activeId, collapsed = false, onSelect, onCreate, onDelete, onRequestExpand, labels = defaultLabels }: CharacterSidebarProps) {
+export function CharacterSidebar({ items, activeId, collapsed = false, onSelect, onCreate, onDelete, onRequestExpand, labels }: CharacterSidebarProps) {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const pendingItem = items.find(({ id }) => id === pendingDelete)
   const confirmationText = pendingItem ? labels.confirm(pendingItem.name) : null

@@ -16,7 +16,7 @@ for (const width of [390, 540]) {
     await page.goto('/?system=dnd')
     const navigation = page.getByRole('navigation', { name: 'Trocar sistema de RPG' })
     await expect(navigation).toHaveCount(0)
-    const openDnd = page.getByRole('button', { name: 'Open character menu' })
+    const openDnd = page.getByRole('button', { name: 'Abrir menu de personagens' })
     await openDnd.click()
     await expect(navigation).toBeVisible()
     await navigation.getByRole('button', { name: 'Ordem Paranormal' }).click()

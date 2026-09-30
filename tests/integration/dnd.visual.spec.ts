@@ -3,6 +3,7 @@ import { visualDndCharacter } from '../fixtures/dndCharacter'
 
 for (const width of [390, 1440]) {
   test(`D&D sheet visual em ${width}px`, async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('rpg-fichas:preferences:locale', 'pt-BR'))
     await page.addInitScript(({ index, record }) => {
       if (localStorage.getItem('rpg-fichas:v1:dnd:index') === null) {
         localStorage.setItem('rpg-fichas:v1:dnd:index', index)

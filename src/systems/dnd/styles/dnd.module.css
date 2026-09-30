@@ -11,7 +11,7 @@
 .brand > span:last-child { display: grid; min-width: 0; }
 .brand small { color: #d9a29a; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .brand strong { font-family: Cinzel, Georgia, serif; font-size: 0.82rem; line-height: 1.3; }
-.brandMark { display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; border: 1px solid #b76a60; border-radius: 50%; color: #f8eee3; background: #7c302d; font-family: Cinzel, Georgia, serif; font-size: 1.35rem; }
+.brandMark { flex: 0 0 42px; width: 42px; height: 42px; border: 1px solid #b76a60; border-radius: 50%; padding: 3px; background: #7c302d; object-fit: contain; }
 .sidebarStatus { margin: 12px 0 0; color: #a99c91; font-size: 0.7rem; text-align: center; }
 .mobileSystemSwitcher { --menu-nav-text: #f3ecdd; --menu-nav-muted: #c9b8a6; --menu-nav-border: #765c51; --menu-nav-active: #e6b39b; --menu-nav-surface: #392d27; display: none; }
 .sidebar[data-collapsed='true'] .sidebarStatus { display: none; }

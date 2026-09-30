@@ -8,7 +8,7 @@
 .brand > span:last-child { display: grid; min-width: 0; }
 .brand small { color: #c78b8f; font-size: .64rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
 .brand strong { font-size: .96rem; letter-spacing: .03em; }
-.brandMark { display: grid; flex: 0 0 44px; width: 44px; height: 44px; place-items: center; border: 1px solid #7b4145; border-radius: 6px; color: white; background: linear-gradient(145deg, #8e3b40, #4f282b); font-weight: 800; }
+.brandMark { flex: 0 0 48px; width: 48px; height: 48px; border: 1px solid #7b4145; border-radius: 7px; padding: 2px; background: #242e2b; object-fit: contain; }
 .sidebarStatus { position: relative; margin: 13px 0 0; color: #75817d; font-size: .68rem; text-align: center; }
 .mobileSystemSwitcher { --menu-nav-text: #edf1ef; --menu-nav-muted: #a6b3ac; --menu-nav-border: #3c4945; --menu-nav-active: #e7a1a5; --menu-nav-surface: #1c2321; display: none; }
 .mobileHeader, .mobileClose, .backdrop { display: none; }
@@ -21,8 +21,8 @@
 .metadata { display: flex; flex-wrap: wrap; gap: 8px; }
 .metadata span { border: 1px solid #3c4945; border-radius: 999px; padding: 4px 9px; color: #b1bbb7; background: rgb(255 255 255 / 2%); font-size: .72rem; }
 .metadata span:first-child { border-color: #714044; color: #dca4a7; background: rgb(164 68 73 / 16%); }
-.sectionNav { position: sticky; top: 8px; z-index: 15; display: flex; gap: 8px; margin-bottom: 16px; border: 1px solid #2b3532; border-radius: 10px; padding: 6px; overflow-x: auto; background: rgb(13 17 16 / 93%); box-shadow: 0 8px 24px rgb(0 0 0 / 18%); scrollbar-width: thin; }
-.sectionNav a { display: flex; min-height: 38px; align-items: center; gap: 7px; border: 1px solid transparent; border-radius: 6px; padding: 7px 12px; color: #b1bbb7; text-decoration: none; white-space: nowrap; }
+.sectionNav { position: sticky; top: 8px; z-index: 15; display: flex; gap: 4px; margin-bottom: 16px; border: 1px solid #2b3532; border-radius: 10px; padding: 6px; overflow-x: auto; background: rgb(13 17 16 / 93%); box-shadow: 0 8px 24px rgb(0 0 0 / 18%); scrollbar-width: thin; }
+.sectionNav a { display: flex; min-height: 38px; align-items: center; gap: 7px; border: 1px solid transparent; border-radius: 6px; padding: 7px 8px; color: #b1bbb7; text-decoration: none; white-space: nowrap; }
 .sectionNav a:hover, .sectionNav a:focus-visible { border-color: #3c4945; color: #edf1ef; background: #171d1b; }
 .sectionNav a span { color: #c2555b; font: 700 .64rem ui-monospace, monospace; }
 .dashboard { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 16px; margin-top: 16px; }
@@ -94,7 +94,7 @@
 .emptyPanel { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 20px; border: 1px dashed #3c4945; border-radius: 10px; padding: 20px; color: #75817d; }.emptyPanel p { margin: 0; }
 .inventoryOverview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 20px; }.inventoryOverview .summaryCell { min-height: 80px; }.inventoryOverview .summaryCell strong:has(input) { display: flex; align-items: center; gap: 5px; }.inventoryOverview .summaryCell strong input { max-width: 95px; }
 .limits { margin-top: 20px; }.limits h3 { color: #75817d; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }.limitGrid { display: grid; grid-template-columns: repeat(4, 74px); gap: 8px; }.limit { display: grid; aspect-ratio: 1; place-content: center; gap: 3px; border: 1px solid #2b3532; border-radius: 6px; text-align: center; }.limit[data-over='true'] { border-color: #925057; color: #e7a1a5; background: rgb(164 68 73 / 16%); }
-.card textarea[aria-label='AnotaÃ§Ãµes'] { min-height: 172px; margin-top: 20px; }
+[id='anotacoes'] textarea { min-height: 172px; margin-top: 20px; }
 .emptyState, .readError { display: grid; justify-items: start; gap: 12px; border: 1px solid #2b3532; border-top: 2px solid #a44449; border-radius: 14px; padding: 40px 24px; background: linear-gradient(145deg, #171d1b, #0d1110); }
 .emptyState small { color: #c2555b; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }.emptyState h3, .readError h2 { margin: 0; font-size: 1.7rem; }.emptyState p { margin: 0; color: #b1bbb7; }
 .persistenceError { position: sticky; top: 8px; z-index: 20; margin-bottom: 12px; border: 1px solid #864348; border-radius: 10px; padding: 12px; background: #251718; }.persistenceError p { margin: 0 0 8px; }

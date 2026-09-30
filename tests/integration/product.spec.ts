@@ -17,17 +17,17 @@ const dndIndex = 'rpg-fichas:v1:dnd:index'
 const ordemIndex = 'rpg-fichas:v1:ordem:index'
 const record = (system: 'dnd' | 'ordem', id: string) => `rpg-fichas:v1:${system}:character:${id}`
 
-async function createDnd(page: Page) { await page.getByRole('button', { name: 'New character' }).click() }
+async function createDnd(page: Page) { await page.getByRole('button', { name: 'Novo personagem' }).click() }
 async function createOrdem(page: Page) {
   const empty = page.getByRole('button', { name: 'Criar ficha' })
   if (await empty.count()) await empty.click()
   else await page.getByRole('button', { name: 'Novo agente', exact: true }).click()
 }
 async function renameDnd(page: Page, name: string) {
-  await page.getByRole('button', { name: 'Edit character details' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Edit character details' })
-  await dialog.getByRole('textbox', { name: 'Character name' }).fill(name)
-  await dialog.getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('button', { name: 'Editar detalhes do personagem' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Editar detalhes do personagem' })
+  await dialog.getByRole('textbox', { name: 'Nome do personagem' }).fill(name)
+  await dialog.getByRole('button', { name: 'Salvar' }).click()
 }
 async function renameOrdem(page: Page, name: string) {
   await page.getByRole('button', { name: 'Editar informações básicas' }).click()
@@ -43,7 +43,7 @@ test('jornada do produto mantém coleções, conteúdo e seleção independentes
   expect(await page.evaluate(() => localStorage.length)).toBe(0)
   await page.getByRole('button', { name: 'D&D' }).click()
   await createDnd(page); await renameDnd(page, 'Character A')
-  await page.getByRole('textbox', { name: 'Notes' }).fill('Mapa antigo')
+  await page.getByRole('textbox', { name: 'Anotações' }).fill('Mapa antigo')
   await createDnd(page); await renameDnd(page, 'Character B')
   const dndBefore = await index(page, dndIndex)
   expect(dndBefore.characterIds).toHaveLength(2)
@@ -85,8 +85,8 @@ test('jornada do produto mantém coleções, conteúdo e seleção independentes
   ].sort())
 
   for (let count = 0; count < 2; count++) {
-    await page.getByRole('button', { name: 'Delete selected' }).click()
-    await page.getByRole('group', { name: /^Delete / }).getByRole('button', { name: 'Delete character' }).click()
+    await page.getByRole('button', { name: 'Excluir selecionado' }).click()
+    await page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Excluir personagem' }).click()
   }
   await expect(page.getByText('Nenhuma ficha criada.')).toBeVisible()
   expect(await index(page, dndIndex)).toMatchObject({ characterIds: [], activeCharacterId: null })
@@ -121,9 +121,9 @@ test('menu móvel não reabre ao voltar ao sistema e devolve foco ao gatilho', a
   await page.setViewportSize({ width: 390, height: 800 })
   await page.goto('/')
   await page.getByRole('button', { name: 'D&D' }).click()
-  const openDnd = page.getByRole('button', { name: 'Open character menu' })
+  const openDnd = page.getByRole('button', { name: 'Abrir menu de personagens' })
   await openDnd.click()
-  await expect(page.getByRole('button', { name: 'Close character menu' }).first()).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Fechar menu de personagens' }).first()).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(openDnd).toBeFocused()
   await openDnd.click()
@@ -135,7 +135,7 @@ test('menu móvel não reabre ao voltar ao sistema e devolve foco ao gatilho', a
   await page.goForward()
   await expect(openDnd).toHaveAttribute('aria-expanded', 'false')
   await openDnd.click()
-  await page.getByRole('button', { name: 'New character' }).click()
+  await page.getByRole('button', { name: 'Novo personagem' }).click()
   await expect(openDnd).toBeFocused()
   await expect(openDnd).toHaveAttribute('aria-expanded', 'false')
   await openDnd.click()
@@ -158,9 +158,9 @@ test('menu móvel não reabre ao voltar ao sistema e devolve foco ao gatilho', a
 
 test('confirmação de exclusão aceita Escape e restaura foco sem excluir', async ({ page }) => {
   await page.goto('/?system=dnd'); await createDnd(page)
-  const remove = page.getByRole('button', { name: 'Delete selected' })
+  const remove = page.getByRole('button', { name: 'Excluir selecionado' })
   await remove.click()
-  await expect(page.getByRole('group', { name: /^Delete / }).getByRole('button', { name: 'Cancel' })).toBeFocused()
+  await expect(page.getByRole('group', { name: /^Excluir / }).getByRole('button', { name: 'Cancelar' })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(remove).toBeFocused()
   expect((await index(page, dndIndex)).characterIds).toHaveLength(1)
@@ -188,15 +188,15 @@ test('factories dos dois sistemas produzem IDs distintos e fichas aceitas pelos 
 test('editores de identidade devolvem foco ao botão após salvar e cancelar', async ({ page }) => {
   await page.goto('/?system=dnd')
   await createDnd(page)
-  const editDnd = page.getByRole('button', { name: 'Edit character details' })
+  const editDnd = page.getByRole('button', { name: 'Editar detalhes do personagem' })
   await editDnd.click()
-  await page.getByRole('dialog', { name: 'Edit character details' }).getByRole('button', { name: 'Cancel' }).click()
+  await page.getByRole('dialog', { name: 'Editar detalhes do personagem' }).getByRole('button', { name: 'Cancelar' }).click()
   await expect(editDnd).toBeFocused()
   await editDnd.click()
-  await page.getByRole('dialog', { name: 'Edit character details' }).getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('dialog', { name: 'Editar detalhes do personagem' }).getByRole('button', { name: 'Salvar' }).click()
   await expect(editDnd).toBeFocused()
   await editDnd.click()
-  await page.getByRole('dialog', { name: 'Edit character details' }).getByRole('textbox', { name: 'Character name' }).press('Escape')
+  await page.getByRole('dialog', { name: 'Editar detalhes do personagem' }).getByRole('textbox', { name: 'Nome do personagem' }).press('Escape')
   await expect(editDnd).toBeFocused()
 
   await switcher(page).getByRole('button', { name: 'Ordem Paranormal' }).click()
@@ -289,7 +289,7 @@ test('Ordem grava registro antes do índice e remove somente após atualizar o �
 test('NumberInput preserva edição vazia, limites, step inteiro e decimal nos dois sistemas', async ({ page }) => {
   await page.goto('/?system=dnd')
   await createDnd(page)
-  const gp = page.getByRole('region', { name: 'Equipment' }).getByRole('textbox', { name: 'GP' })
+  const gp = page.getByRole('region', { name: 'Equipamento' }).getByRole('textbox', { name: 'GP' })
   await gp.fill('2.6')
   await gp.press('Enter')
   await expect(gp).toHaveValue('3')
@@ -345,11 +345,11 @@ test('hook impede mudança de ID nos modelos reais de D&D e Ordem', async ({ pag
 test('troca de sistema mantém sidebar recolhida e descarta rascunhos não confirmados', async ({ page }) => {
   await page.goto('/?system=dnd')
   await createDnd(page)
-  await page.getByRole('button', { name: 'Collapse sidebar' }).click()
-  await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible()
-  await page.getByRole('button', { name: 'Edit character details' }).click()
-  await page.getByRole('dialog', { name: 'Edit character details' })
-    .getByRole('textbox', { name: 'Character name' }).fill('Rascunho D&D')
+  await page.getByRole('button', { name: 'Recolher barra lateral' }).click()
+  await expect(page.getByRole('button', { name: 'Expandir barra lateral' })).toBeVisible()
+  await page.getByRole('button', { name: 'Editar detalhes do personagem' }).click()
+  await page.getByRole('dialog', { name: 'Editar detalhes do personagem' })
+    .getByRole('textbox', { name: 'Nome do personagem' }).fill('Rascunho D&D')
   expect(await page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })))).toBe(true)
   await switcher(page).getByRole('button', { name: 'Ordem Paranormal' }).click()
   await createOrdem(page)
@@ -357,9 +357,9 @@ test('troca de sistema mantém sidebar recolhida e descarta rascunhos não confi
   await page.getByRole('dialog', { name: 'Editar informações básicas' })
     .getByRole('textbox', { name: 'Nome do personagem' }).fill('Rascunho Ordem')
   await switcher(page).getByRole('button', { name: 'D&D' }).click()
-  await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible()
-  await expect(page.getByRole('dialog', { name: 'Edit character details' })).toHaveCount(0)
-  await expect(page.getByRole('heading', { name: 'New Adventurer' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Expandir barra lateral' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Editar detalhes do personagem' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Novo aventureiro' })).toBeVisible()
   await switcher(page).getByRole('button', { name: 'Ordem Paranormal' }).click()
   await expect(page.getByRole('dialog', { name: 'Editar informações básicas' })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Novo agente' })).toBeVisible()

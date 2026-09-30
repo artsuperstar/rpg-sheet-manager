@@ -6,6 +6,7 @@ import { EquipmentPanel } from './components/EquipmentPanel'
 import { FeaturesPanel } from './components/FeaturesPanel'
 import { IdentityPanel } from './components/IdentityPanel'
 import styles from './styles/dnd.module.css'
+import { useI18n } from '../../i18n/useI18n'
 
 interface DndSheetProps {
   character: DndCharacter
@@ -13,11 +14,12 @@ interface DndSheetProps {
 }
 
 export function DndSheet({ character, onChange }: DndSheetProps) {
+  const { dnd: t } = useI18n()
   return (
     <div className={styles.sheet}>
       <header className={styles.sheetHeader}>
-        <p>Active character</p>
-        <h2>{character.name || 'Unnamed character'}</h2>
+        <p>{t('Active character')}</p>
+        <h2>{character.name || t('Unnamed character')}</h2>
       </header>
       <IdentityPanel character={character} onChange={onChange} />
       <div className={styles.dashboard}>
@@ -26,9 +28,9 @@ export function DndSheet({ character, onChange }: DndSheetProps) {
         <AttackSpellcastingPanel character={character} onChange={onChange} />
         <EquipmentPanel character={character} onChange={onChange} />
         <FeaturesPanel character={character} onChange={onChange} />
-        <section className={`${styles.card} ${styles.notes}`} aria-label="Notes">
-          <h3>Notes</h3>
-          <textarea aria-label="Notes" placeholder="Session notes, quests, NPCs…" value={character.notes}
+        <section className={`${styles.card} ${styles.notes}`} aria-label={t('Notes')}>
+          <h3>{t('Notes')}</h3>
+          <textarea aria-label={t('Notes')} placeholder={t('Session notes, quests, NPCs…')} value={character.notes}
             onChange={(event) => {
               const notes = event.target.value
               onChange((current) => ({ ...current, notes }))
