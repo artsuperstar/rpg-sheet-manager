@@ -122,6 +122,40 @@
   cursor: default;
 }
 
+.collectionList {
+  list-style: none;
+  margin: var(--space-4) 0;
+  padding: 0;
+}
+
+.collectionItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+
+.nameField {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 24rem;
+  margin-top: var(--space-4);
+}
+
+.nameField input {
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-2);
+}
+
+.error {
+  margin-top: var(--space-4);
+  border: 1px solid var(--theme-accent, #355b61);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+}
+
 @media (max-width: 40rem) {
   .container {
     width: min(calc(100% - 1.25rem), var(--content-width));
