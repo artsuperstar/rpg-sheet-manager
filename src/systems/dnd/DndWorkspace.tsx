@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCharacterCollection } from '../../shared/collection/useCharacterCollection'
 import { CharacterSidebar } from '../../shared/ui/CharacterSidebar'
 import logo from './assets/players-tavern-logo.png'
@@ -13,15 +13,33 @@ export function DndWorkspace({ active }: DndWorkspaceProps) {
   const collection = useCharacterCollection(dndRepository, createDefaultDndCharacter)
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [wasActive, setWasActive] = useState(active)
+  const openMenuButton = useRef<HTMLButtonElement>(null)
+  const closeMenuButton = useRef<HTMLButtonElement>(null)
+
+  if (wasActive !== active) {
+    setWasActive(active)
+    if (!active) setMobileOpen(false)
+  }
+
+  const closeMenu = () => {
+    setMobileOpen(false)
+    openMenuButton.current?.focus()
+  }
 
   useEffect(() => {
     if (!mobileOpen || !active) return
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setMobileOpen(false) }
+    closeMenuButton.current?.focus()
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') closeMenu() }
+    const desktop = window.matchMedia('(min-width: 541px)')
+    const onResize = () => { if (desktop.matches) setMobileOpen(false) }
     window.addEventListener('keydown', close)
+    desktop.addEventListener('change', onResize)
     return () => {
       window.removeEventListener('keydown', close)
+      desktop.removeEventListener('change', onResize)
       document.body.style.overflow = previousOverflow
     }
   }, [active, mobileOpen])
@@ -32,6 +50,7 @@ export function DndWorkspace({ active }: DndWorkspaceProps) {
     <section className={styles.readError} aria-label="D&D">
       <h2>D&D</h2>
       <div role="alert"><p>Erro de leitura: {collection.status.error.message}</p>
+        <p>Os dados no dispositivo foram preservados. Corrija o problema e tente ler novamente.</p>
         <button type="button" onClick={collection.retryLoad}>Tentar ler novamente</button></div>
     </section>
   )
@@ -44,14 +63,14 @@ export function DndWorkspace({ active }: DndWorkspaceProps) {
     <section className={styles.workspace} aria-label="D&D">
       <h2 className={styles.visuallyHidden}>D&D</h2>
       <div className={styles.mobileHeader}>
-        <button type="button" aria-label="Open character menu" aria-controls="dnd-character-sidebar"
+        <button ref={openMenuButton} type="button" aria-label="Open character menu" aria-controls="dnd-character-sidebar"
           aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}>☰</button>
         <img src={logo} alt="" /><span>Character sheets<br /><strong>The Player&apos;s Tavern</strong></span>
       </div>
       <aside id="dnd-character-sidebar" className={styles.sidebar} data-collapsed={collapsed}
         data-mobile-open={mobileOpen}>
-        <button className={styles.mobileClose} type="button" aria-label="Close character menu"
-          onClick={() => setMobileOpen(false)}>×</button>
+        <button ref={closeMenuButton} className={styles.mobileClose} type="button" aria-label="Close character menu"
+          onClick={closeMenu}>×</button>
         <button className={styles.collapseButton} type="button"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={() => setCollapsed((value) => !value)}>{collapsed ? '› Expand' : '‹ Collapse'}</button>
@@ -61,19 +80,20 @@ export function DndWorkspace({ active }: DndWorkspaceProps) {
         </div>
         <CharacterSidebar items={items} activeId={collection.snapshot?.activeCharacterId ?? null}
           collapsed={collapsed}
-          onSelect={(id) => { collection.select(id); setMobileOpen(false) }}
-          onCreate={() => { collection.create(); setMobileOpen(false) }}
-          onDelete={(id) => { collection.remove(id); setMobileOpen(false) }}
+          onSelect={(id) => { collection.select(id); if (mobileOpen) closeMenu() }}
+          onCreate={() => { collection.create(); if (mobileOpen) closeMenu() }}
+          onDelete={(id) => { collection.remove(id); if (mobileOpen) closeMenu() }}
           onRequestExpand={() => setCollapsed(false)} />
         <p className={styles.sidebarStatus}>{collection.status.type === 'write-error'
           ? 'Changes are not saved.' : 'Saved automatically on this device.'}</p>
       </aside>
       <button className={styles.backdrop} type="button" aria-label="Close character menu"
-        data-mobile-open={mobileOpen} onClick={() => setMobileOpen(false)} />
+        data-mobile-open={mobileOpen} onClick={closeMenu} />
       <div className={styles.mainArea}>
         {collection.status.type === 'write-error' ? (
           <div className={styles.persistenceError} role="alert">
             <p>Erro de escrita: {collection.status.error.message}</p>
+            <p>As alterações continuam nesta sessão. Tente salvar novamente.</p>
             <button type="button" onClick={collection.retry}>Tentar salvar novamente</button>
           </div>
         ) : <p className={styles.visuallyHidden} role="status">Salvo</p>}

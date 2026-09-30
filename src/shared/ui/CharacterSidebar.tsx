@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import styles from './CharacterSidebar.module.css'
 
 export interface CharacterNavItem {
@@ -34,6 +34,17 @@ const defaultLabels = {
 export function CharacterSidebar({ items, activeId, collapsed = false, onSelect, onCreate, onDelete, onRequestExpand, labels = defaultLabels }: CharacterSidebarProps) {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const pendingItem = items.find(({ id }) => id === pendingDelete)
+  const deleteButton = useRef<HTMLButtonElement>(null)
+  const cancelButton = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (pendingDelete !== null) cancelButton.current?.focus()
+  }, [pendingDelete])
+
+  const cancelDelete = () => {
+    setPendingDelete(null)
+    deleteButton.current?.focus()
+  }
 
   return (
     <div className={styles.navigation} data-collapsed={collapsed}>
@@ -53,16 +64,17 @@ export function CharacterSidebar({ items, activeId, collapsed = false, onSelect,
         <button type="button" aria-label={labels.create} onClick={() => { setPendingDelete(null); onCreate() }}>
           <span className={styles.fullLabel}>+ {labels.create}</span><span className={styles.compactLabel}>+</span>
         </button>
-        <button type="button" aria-label={labels.delete} disabled={activeId === null} onClick={() => {
+        <button ref={deleteButton} type="button" aria-label={labels.delete} disabled={activeId === null} onClick={() => {
           if (collapsed) onRequestExpand?.()
           setPendingDelete(activeId)
         }}>
           <span className={styles.fullLabel}>{labels.delete}</span><span className={styles.compactLabel}>×</span>
         </button>
         {pendingItem && (
-          <div className={styles.confirmation} role="group" aria-label="Confirm character deletion">
+          <div className={styles.confirmation} role="group" aria-label="Confirm character deletion"
+            onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); cancelDelete() } }}>
             <p>{labels.confirm(pendingItem.name)}</p>
-            <button type="button" onClick={() => setPendingDelete(null)}>{labels.cancel}</button>
+            <button ref={cancelButton} type="button" onClick={cancelDelete}>{labels.cancel}</button>
             <button type="button" onClick={() => { setPendingDelete(null); onDelete(pendingItem.id) }}>{labels.confirmDelete}</button>
           </div>
         )}
