@@ -1,0 +1,250 @@
+import { expect, test, type Page } from '@playwright/test'
+import { createDefaultOrdemCharacter } from '../../src/systems/ordem/defaults'
+
+const indexKey = 'rpg-fichas:v1:ordem:index'
+const recordKey = (id: string) => `rpg-fichas:v1:ordem:character:${id}`
+async function open(page: Page) { await page.goto('/?system=ordem') }
+async function create(page: Page) {
+  const empty = page.getByRole('button', { name: 'Criar ficha' })
+  if (await empty.count()) await empty.click()
+  else await page.getByRole('button', { name: 'Novo agente' }).click()
+}
+async function number(page: Page, label: string, value: string) {
+  const input = page.getByRole('textbox', { name: label })
+  await input.fill(value)
+  await input.press('Tab')
+}
+async function stored(page: Page) {
+  return page.evaluate((key) => {
+    const index = JSON.parse(localStorage.getItem(key) ?? 'null')
+    return JSON.parse(localStorage.getItem(`rpg-fichas:v1:ordem:character:${index.activeCharacterId}`) ?? 'null').data
+  }, indexKey)
+}
+
+test('identidade usa rascunho, salva NEX e descarta mudanças ao trocar ficha', async ({ page }) => {
+  await open(page); await create(page)
+  await page.getByRole('button', { name: 'Editar informações básicas' }).click()
+  let dialog = page.getByRole('dialog', { name: 'Editar informações básicas' })
+  await dialog.getByRole('textbox', { name: 'Nome do personagem' }).fill('Descartar')
+  await dialog.getByRole('button', { name: 'Cancelar' }).click()
+  await expect(page.getByRole('heading', { name: 'Novo agente' })).toBeVisible()
+  await page.getByRole('button', { name: 'Editar informações básicas' }).click()
+  dialog = page.getByRole('dialog', { name: 'Editar informações básicas' })
+  await dialog.getByRole('textbox', { name: 'Nome do personagem' }).fill('Agente Alpha')
+  await dialog.getByRole('textbox', { name: 'Origem' }).fill('Acadêmico')
+  await number(page, 'NEX (%)', '25')
+  await number(page, 'Limite de PE/Rodada', '3')
+  await dialog.getByRole('button', { name: 'Salvar' }).click()
+  await expect(page.getByRole('heading', { name: 'Agente Alpha' })).toBeVisible()
+  expect((await stored(page)).basicInfo).toMatchObject({ name: 'Agente Alpha', origin: 'Acadêmico', nex: 25, effortPerRoundLimit: 3 })
+  await page.getByRole('button', { name: 'Editar informações básicas' }).click()
+  await page.getByRole('dialog', { name: 'Editar informações básicas' }).getByRole('textbox', { name: 'Nome do personagem' }).fill('Incompleto')
+  await create(page)
+  await page.getByRole('navigation', { name: 'Characters' }).getByRole('button', { name: /Agente Alpha/ }).click()
+  await expect(page.getByRole('heading', { name: 'Agente Alpha' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Agente Alpha' })).toBeVisible()
+})
+
+test('atributos e perícias mantêm treino e outros separados e derivam o bônus', async ({ page }) => {
+  await open(page); await create(page)
+  await page.getByRole('button', { name: 'Editar atributos e perícias' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Editar atributos e perícias' })
+  await number(page, 'Agilidade (AGI)', '3')
+  await number(page, 'Treino de Acrobacia', '5')
+  await number(page, 'Outros bônus de Acrobacia', '-2')
+  await dialog.getByRole('button', { name: 'Salvar' }).click()
+  await expect(page.getByRole('status', { name: 'Bônus de Acrobacia' })).toHaveText('+3')
+  const data = await stored(page)
+  expect(data.attributes.agility).toBe(3)
+  expect(data.skills.acrobatics).toEqual({ trainingBonus: 5, otherBonus: -2 })
+  expect(data.skills.acrobatics).not.toHaveProperty('name')
+  await page.reload()
+  await expect(page.getByRole('status', { name: 'Bônus de Acrobacia' })).toHaveText('+3')
+})
+
+test('recursos atuais são diretos; máximos, defesa e deslocamento usam salvar/cancelar', async ({ page }) => {
+  await open(page); await create(page)
+  await page.getByRole('button', { name: 'Editar recursos' }).click()
+  await number(page, 'Pontos de Vida máximos', '20')
+  await number(page, 'Pontos de Esforço máximos', '10')
+  await number(page, 'Sanidade máximos', '15')
+  await number(page, 'Defesa', '18')
+  await page.getByRole('textbox', { name: 'Deslocamento' }).fill('9m / 6q')
+  await page.getByRole('button', { name: 'Cancelar' }).click()
+  expect((await stored(page)).resources.hitPoints.maximum).toBe(0)
+  await page.getByRole('button', { name: 'Editar recursos' }).click()
+  await number(page, 'Pontos de Vida máximos', '20')
+  await number(page, 'Pontos de Esforço máximos', '10')
+  await number(page, 'Sanidade máximos', '15')
+  await number(page, 'Defesa', '18')
+  await page.getByRole('textbox', { name: 'Deslocamento' }).fill('9m / 6q')
+  await page.getByRole('button', { name: 'Salvar' }).click()
+  await number(page, 'Pontos de Vida atuais', '16')
+  await number(page, 'Pontos de Esforço atuais', '7')
+  await number(page, 'Sanidade atuais', '12')
+  await page.reload()
+  const data = await stored(page)
+  expect(data.resources).toEqual({ hitPoints: { current: 16, maximum: 20 }, effortPoints: { current: 7, maximum: 10 }, sanity: { current: 12, maximum: 15 } })
+  expect(data.combat).toEqual({ defense: 18, movement: '9m / 6q' })
+})
+
+test('ataques usam rascunho e persistem campos próprios de Ordem', async ({ page }) => {
+  await open(page); await create(page)
+  await page.getByRole('button', { name: '+ Adicionar ataque' }).click()
+  const editor = page.getByRole('group', { name: 'Editar ataques' })
+  await editor.getByRole('textbox', { name: 'Nome do item' }).fill('Pistola')
+  await editor.getByRole('button', { name: 'Cancelar' }).click()
+  expect((await stored(page)).attacks).toEqual([])
+  await page.getByRole('button', { name: '+ Adicionar ataque' }).click()
+  await editor.getByRole('textbox', { name: 'Nome do item' }).fill('Pistola')
+  await editor.getByRole('textbox', { name: 'Tipo' }).fill('Balística')
+  await editor.getByRole('textbox', { name: 'Alcance' }).fill('Curto')
+  await editor.getByRole('textbox', { name: 'Teste', exact: true }).fill('Pontaria')
+  await editor.getByRole('textbox', { name: 'Dano' }).fill('2d12')
+  await editor.getByRole('textbox', { name: 'Teste de crítico' }).fill('19')
+  await editor.getByRole('textbox', { name: 'Multiplicador de crítico' }).fill('3')
+  await editor.getByRole('button', { name: 'Salvar' }).click()
+  expect((await stored(page)).attacks[0]).toMatchObject({ name: 'Pistola', type: 'Balística', range: 'Curto', test: 'Pontaria', damage: '2d12', criticalTest: '19', criticalMultiplier: '3' })
+  await page.reload()
+  await expect(page.getByText('Pistola')).toBeVisible()
+})
+
+test('inventário deriva patente, crédito, limites e carga de prestígio e itens', async ({ page }) => {
+  await open(page); await create(page)
+  await page.getByRole('button', { name: 'Editar inventário' }).click()
+  await number(page, 'Pontos de Prestígio', '50')
+  await number(page, 'Carga máxima', '12.25')
+  await page.getByRole('button', { name: '+ Adicionar item' }).click()
+  const editor = page.getByRole('group', { name: 'Editar itens do inventário' })
+  await editor.getByRole('textbox', { name: 'Nome do item' }).fill('Kit tático')
+  await editor.getByRole('combobox', { name: 'Categoria' }).selectOption('II')
+  await number(page, 'Espaços', '2.25')
+  await editor.getByRole('textbox', { name: 'Descrição' }).fill('Completo')
+  await page.getByRole('button', { name: 'Cancelar' }).click()
+  expect((await stored(page)).inventory).toEqual([])
+  await page.getByRole('button', { name: 'Editar inventário' }).click()
+  await number(page, 'Pontos de Prestígio', '50')
+  await number(page, 'Carga máxima', '12.25')
+  await page.getByRole('button', { name: '+ Adicionar item' }).click()
+  await editor.getByRole('textbox', { name: 'Nome do item' }).fill('Kit tático')
+  await editor.getByRole('combobox', { name: 'Categoria' }).selectOption('II')
+  await number(page, 'Espaços', '2.25')
+  await page.getByRole('button', { name: 'Salvar' }).click()
+  const data = await stored(page)
+  expect(data.inventorySettings).toEqual({ prestigePoints: 50, maximumLoad: 12.25 })
+  expect(data.inventory[0]).toMatchObject({ name: 'Kit tático', category: 'II', spaces: 2.25 })
+  expect(data.inventorySettings).not.toHaveProperty('rank')
+  await expect(page.getByText('Agente especial')).toBeVisible()
+  await expect(page.getByText('Médio')).toBeVisible()
+  await expect(page.getByText('2.25 / 12.25')).toBeVisible()
+  await expect(page.getByLabel('Categoria II: 1 itens, limite 2')).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('Agente especial')).toBeVisible()
+})
+
+test('habilidades, rituais e notas persistem; rascunho cancelado não persiste', async ({ page }) => {
+  await open(page); await create(page)
+  await page.getByRole('button', { name: '+ Adicionar habilidade' }).click()
+  const editor = page.getByRole('group', { name: 'Editar habilidades e rituais' })
+  await editor.getByRole('textbox', { name: 'Nome da habilidade' }).fill('Especialista')
+  await editor.getByRole('button', { name: 'Cancelar' }).click()
+  expect((await stored(page)).abilities).toEqual([])
+  await page.getByRole('button', { name: '+ Adicionar habilidade' }).click()
+  await editor.getByRole('textbox', { name: 'Nome da habilidade' }).fill('Especialista')
+  await editor.getByRole('textbox', { name: 'Custo' }).fill('2 PE')
+  await editor.getByRole('button', { name: '+ Adicionar ritual' }).click()
+  await editor.getByRole('textbox', { name: 'Nome do ritual' }).fill('Decadência')
+  await editor.getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('textbox', { name: 'Anotações' }).fill('Pista no arquivo')
+  await page.reload()
+  const data = await stored(page)
+  expect(data.abilities[0]).toMatchObject({ name: 'Especialista', cost: '2 PE' })
+  expect(data.rituals[0]).toMatchObject({ name: 'Decadência' })
+  expect(data.notes).toBe('Pista no arquivo')
+})
+
+test('navegação por seções rola e hash de Ordem é limpo ao trocar de RPG', async ({ page }) => {
+  await open(page); await create(page)
+  await page.getByRole('navigation', { name: 'Seções da ficha' }).getByRole('link', { name: /Inventário/ }).click()
+  await expect(page).toHaveURL(/#inventario$/)
+  await expect(page.getByRole('region', { name: 'Inventário' })).toBeInViewport()
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
+  await expect(page).not.toHaveURL(/#inventario$/)
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'Ordem Paranormal' }).click()
+  await expect(page.getByRole('navigation', { name: 'Seções da ficha' })).toBeVisible()
+})
+
+test('cada sistema conserva sua própria ficha ativa entre trocas e reload', async ({ page }) => {
+  await page.goto('/?system=dnd')
+  await page.getByRole('button', { name: 'New character' }).click()
+  await page.getByRole('button', { name: 'Edit character details' }).click()
+  await page.getByRole('dialog', { name: 'Edit character details' }).getByRole('textbox', { name: 'Character name' }).fill('Guerreira')
+  await page.getByRole('dialog', { name: 'Edit character details' }).getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('button', { name: 'New character' }).click()
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'Ordem Paranormal' }).click()
+  await create(page)
+  await page.getByRole('button', { name: 'Editar informações básicas' }).click()
+  await page.getByRole('dialog', { name: 'Editar informações básicas' }).getByRole('textbox', { name: 'Nome do personagem' }).fill('Ocultista')
+  await page.getByRole('dialog', { name: 'Editar informações básicas' }).getByRole('button', { name: 'Salvar' }).click()
+  await create(page)
+  await page.getByRole('navigation', { name: 'Characters' }).getByRole('button', { name: /Ocultista/ }).click()
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
+  await expect(page.getByRole('heading', { name: 'New Adventurer' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'Ordem Paranormal' }).click()
+  await expect(page.getByRole('heading', { name: 'Ocultista' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Ocultista' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
+  await expect(page.getByRole('heading', { name: 'New Adventurer' })).toBeVisible()
+  const indexes = await page.evaluate(() => ({
+    dnd: JSON.parse(localStorage.getItem('rpg-fichas:v1:dnd:index') ?? 'null'),
+    ordem: JSON.parse(localStorage.getItem('rpg-fichas:v1:ordem:index') ?? 'null'),
+  }))
+  expect(indexes.dnd.characterIds).toHaveLength(2)
+  expect(indexes.ordem.characterIds).toHaveLength(2)
+  expect(indexes.dnd.activeCharacterId).not.toBe(indexes.ordem.activeCharacterId)
+})
+
+test('menu móvel de Ordem abre e fecha com Escape', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 })
+  await open(page); await create(page)
+  await page.getByRole('button', { name: 'Abrir menu de personagens' }).click()
+  await expect(page.getByRole('button', { name: 'Novo agente', exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: 'Abrir menu de personagens' })).toHaveAttribute('aria-expanded', 'false')
+})
+
+test('registro de Ordem inválido entra em read-error e D&D continua utilizável', async ({ page }) => {
+  const id = 'bad-ordem'
+  await page.addInitScript(({ index, record }) => {
+    localStorage.setItem(index, JSON.stringify({ version: 1, system: 'ordem', characterIds: ['bad-ordem'], activeCharacterId: 'bad-ordem' }))
+    localStorage.setItem(record, JSON.stringify({ version: 1, system: 'ordem', data: { id: 'bad-ordem' } }))
+  }, { index: indexKey, record: recordKey(id) })
+  await open(page)
+  await expect(page.getByRole('alert')).toContainText('Erro de leitura')
+  await page.getByRole('navigation', { name: 'Trocar sistema de RPG' }).getByRole('button', { name: 'D&D' }).click()
+  await page.getByRole('button', { name: 'New character' }).click()
+  await expect(page.getByRole('heading', { name: 'New Adventurer' })).toBeVisible()
+  expect(await page.evaluate((key) => localStorage.getItem(key), recordKey(id))).toContain('bad-ordem')
+})
+
+for (const width of [320, 360, 390, 650, 768, 820, 1040, 1440]) {
+  test(`ficha Ordem completa não tem overflow horizontal em ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    const character = createDefaultOrdemCharacter()
+    character.basicInfo.name = 'Agente de Teste'
+    character.attacks = [{ id: 'atk', name: 'Pistola', type: 'Balística', range: 'Curto', test: 'Pontaria', damage: '2d12', criticalTest: '19', criticalMultiplier: '3' }]
+    character.inventory = [{ id: 'item', name: 'Kit tático', category: 'II', spaces: 2.5, description: 'Completo' }]
+    character.abilities = [{ id: 'power', name: 'Especialista', cost: '2 PE', page: '42', description: 'Habilidade' }]
+    character.rituals = [{ id: 'ritual', name: 'Decadência', cost: '3 PE', page: '120', description: 'Ritual' }]
+    await page.addInitScript(({ index, record, value }) => {
+      localStorage.setItem(index, JSON.stringify({ version: 1, system: 'ordem', characterIds: [value.id], activeCharacterId: value.id }))
+      localStorage.setItem(record, JSON.stringify({ version: 1, system: 'ordem', data: value }))
+    }, { index: indexKey, record: recordKey(character.id), value: character })
+    await open(page)
+    await expect(page.getByRole('heading', { name: 'Agente de Teste' })).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
+    expect(overflow).toBe(false)
+  })
+}

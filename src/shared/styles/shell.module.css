@@ -22,8 +22,7 @@
 }
 
 .header h1,
-.chooser h2,
-.workspace h2 {
+.chooser h2 {
   margin: 0;
   font-family: var(--theme-heading-font, system-ui, sans-serif);
   line-height: 1.2;
@@ -46,21 +45,18 @@
   padding-top: var(--space-8);
 }
 
-.chooser,
-.workspace {
+.chooser {
   border: 1px solid var(--theme-border, #bbc8c2);
   border-radius: var(--radius-md);
   padding: clamp(var(--space-4), 4vw, var(--space-8));
   background: var(--theme-surface, #fff);
 }
 
-.chooser h2,
-.workspace h2 {
+.chooser h2 {
   font-size: clamp(1.5rem, 4vw, 2rem);
 }
 
-.chooser p:not(.kicker),
-.workspace p:not(.kicker) {
+.chooser p:not(.kicker) {
   max-width: 60ch;
   color: var(--theme-muted, #53645f);
   line-height: 1.55;
@@ -120,40 +116,6 @@
   border-color: var(--theme-accent, #355b61);
   color: var(--theme-accent, #355b61);
   cursor: default;
-}
-
-.collectionList {
-  list-style: none;
-  margin: var(--space-4) 0;
-  padding: 0;
-}
-
-.collectionItem {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  margin-block: var(--space-2);
-}
-
-.nameField {
-  display: grid;
-  gap: var(--space-2);
-  max-width: 24rem;
-  margin-top: var(--space-4);
-}
-
-.nameField input {
-  width: 100%;
-  min-width: 0;
-  padding: var(--space-2);
-}
-
-.error {
-  margin-top: var(--space-4);
-  border: 1px solid var(--theme-accent, #355b61);
-  border-radius: var(--radius-sm);
-  padding: var(--space-4);
 }
 
 @media (max-width: 40rem) {

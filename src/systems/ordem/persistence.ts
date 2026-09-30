@@ -1,4 +1,4 @@
 import { createRepository } from '../../shared/persistence/repository'
-import { isOrdemPlaceholderCharacter } from './placeholderModel'
+import { isOrdemCharacter } from './validation'
 
-export const ordemRepository = createRepository('ordem', isOrdemPlaceholderCharacter)
+export const ordemRepository = createRepository('ordem', isOrdemCharacter)

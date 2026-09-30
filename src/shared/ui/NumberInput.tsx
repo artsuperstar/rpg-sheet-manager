@@ -7,7 +7,7 @@ interface NumberInputProps {
   onChange: (value: number) => void
   min?: number
   max?: number
-  step?: number
+  step?: number | 'any'
 }
 
 export function NumberInput({ label, value, onChange, min, max, step = 1 }: NumberInputProps) {
@@ -28,11 +28,11 @@ export function NumberInput({ label, value, onChange, min, max, step = 1 }: Numb
     }
     const bounded = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, parsed))
     const base = min ?? 0
-    const stepped = step > 0 && Number.isFinite(step)
+    const stepped = typeof step === 'number' && step > 0 && Number.isFinite(step)
       ? Number((base + Math.round((bounded - base) / step) * step).toFixed(10))
       : bounded
     const next = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, stepped))
-    if (Number.isFinite(next) && (!Number.isInteger(step) || Number.isSafeInteger(next)) && next !== value) onChange(next)
+    if (Number.isFinite(next) && (step === 'any' || !Number.isInteger(step) || Number.isSafeInteger(next)) && next !== value) onChange(next)
     setDraft(null)
   }
 
@@ -41,7 +41,7 @@ export function NumberInput({ label, value, onChange, min, max, step = 1 }: Numb
       <span>{label}</span>
       <input
         type="text"
-        inputMode={min !== undefined && min >= 0 && Number.isInteger(step) ? 'numeric' : 'decimal'}
+        inputMode={min !== undefined && min >= 0 && step !== 'any' && Number.isInteger(step) ? 'numeric' : 'decimal'}
         value={draft ?? String(value)}
         onFocus={() => setDraft(String(value))}
         onChange={(event) => setDraft(event.target.value)}

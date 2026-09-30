@@ -10,21 +10,34 @@ export interface CharacterNavItem {
 interface CharacterSidebarProps {
   items: CharacterNavItem[]
   activeId: string | null
-  collapsed: boolean
+  collapsed?: boolean
   onSelect: (id: string) => void
   onCreate: () => void
   onDelete: (id: string) => void
-  onRequestExpand: () => void
+  onRequestExpand?: () => void
+  labels?: {
+    heading: string
+    create: string
+    delete: string
+    confirm: (name: string) => string
+    cancel: string
+    confirmDelete: string
+  }
 }
 
-// API de apresentação provisória: será reavaliada quando Ordem ganhar sua ficha real.
-export function CharacterSidebar({ items, activeId, collapsed, onSelect, onCreate, onDelete, onRequestExpand }: CharacterSidebarProps) {
+// Navegação recebe somente dados de apresentação; cada workspace controla o próprio layout.
+const defaultLabels = {
+  heading: 'Your characters', create: 'New character', delete: 'Delete selected',
+  confirm: (name: string) => `Delete ${name || 'this character'}?`, cancel: 'Cancel', confirmDelete: 'Delete character',
+}
+
+export function CharacterSidebar({ items, activeId, collapsed = false, onSelect, onCreate, onDelete, onRequestExpand, labels = defaultLabels }: CharacterSidebarProps) {
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const pendingItem = items.find(({ id }) => id === pendingDelete)
 
   return (
     <div className={styles.navigation} data-collapsed={collapsed}>
-      <div className={styles.heading}><span>Your characters</span><span>{items.length}</span></div>
+      <div className={styles.heading}><span>{labels.heading}</span><span>{items.length}</span></div>
       <nav className={styles.list} aria-label="Characters">
         {items.map(({ id, name, summary }) => (
           <button className={styles.option} data-active={id === activeId} type="button" key={id}
@@ -37,20 +50,20 @@ export function CharacterSidebar({ items, activeId, collapsed, onSelect, onCreat
         ))}
       </nav>
       <div className={styles.actions}>
-        <button type="button" aria-label="New character" onClick={() => { setPendingDelete(null); onCreate() }}>
-          <span className={styles.fullLabel}>+ New character</span><span className={styles.compactLabel}>+</span>
+        <button type="button" aria-label={labels.create} onClick={() => { setPendingDelete(null); onCreate() }}>
+          <span className={styles.fullLabel}>+ {labels.create}</span><span className={styles.compactLabel}>+</span>
         </button>
-        <button type="button" aria-label="Delete selected" disabled={activeId === null} onClick={() => {
-          if (collapsed) onRequestExpand()
+        <button type="button" aria-label={labels.delete} disabled={activeId === null} onClick={() => {
+          if (collapsed) onRequestExpand?.()
           setPendingDelete(activeId)
         }}>
-          <span className={styles.fullLabel}>Delete selected</span><span className={styles.compactLabel}>×</span>
+          <span className={styles.fullLabel}>{labels.delete}</span><span className={styles.compactLabel}>×</span>
         </button>
         {pendingItem && (
           <div className={styles.confirmation} role="group" aria-label="Confirm character deletion">
-            <p>Delete {pendingItem.name || 'this character'}?</p>
-            <button type="button" onClick={() => setPendingDelete(null)}>Cancel</button>
-            <button type="button" onClick={() => { setPendingDelete(null); onDelete(pendingItem.id) }}>Delete character</button>
+            <p>{labels.confirm(pendingItem.name)}</p>
+            <button type="button" onClick={() => setPendingDelete(null)}>{labels.cancel}</button>
+            <button type="button" onClick={() => { setPendingDelete(null); onDelete(pendingItem.id) }}>{labels.confirmDelete}</button>
           </div>
         )}
       </div>
